@@ -1,0 +1,3 @@
+outcome,n,disease_events,competing_deaths_before_disease,composite_events,censored_without_event_or_death
+incident_chronic_lung_disease,10997,1330,899,2229,8768
+incident_asthma,11656,462,1053,1515,10141

@@ -1,0 +1,17 @@
+outcome,model,design_type,estimand,n_obs,events,event_rate_display,term,effect_ci,p_formatted
+incident_chronic_lung_disease_w2_w5,svycox_cause_specific,public_psu,survey_HR,11066,1647,14.9%,resp_vulnerability_z,"1.20 (1.07, 1.35)",0.002
+incident_chronic_lung_disease_w2_w5,svycox_plus_frailty,public_psu,survey_HR,11062,1646,14.9%,resp_vulnerability_z,"1.16 (1.04, 1.31)",0.010
+incident_chronic_lung_disease_w2_w5,svycox_plus_frailty,public_psu,survey_HR,11062,1646,14.9%,frailty_proxy_count_w1,"1.21 (1.12, 1.29)",<0.001
+incident_chronic_lung_disease_w2_w5,svycox_composite_disease_or_death,public_psu,survey_HR,11066,2879,26.0%,resp_vulnerability_z,"1.25 (1.15, 1.36)",<0.001
+incident_chronic_lung_disease_w2_w5,svyglm_discrete_time,public_psu,survey_OR,39396,1647,4.2%,resp_vulnerability_z,"1.23 (1.08, 1.38)",0.001
+death_w2_w5,svycox_death,public_psu,survey_HR,12569,1681,13.4%,resp_vulnerability_z,"1.33 (1.24, 1.43)",<0.001
+death_w2_w5,svycox_death_plus_frailty,public_psu,survey_HR,12562,1680,13.4%,resp_vulnerability_z,"1.24 (1.16, 1.33)",<0.001
+death_w2_w5,svycox_death_plus_frailty,public_psu,survey_HR,12562,1680,13.4%,frailty_proxy_count_w1,"1.37 (1.29, 1.45)",<0.001
+incident_chronic_lung_disease_w2_w5,svycox_cause_specific,public_county_community,survey_HR,11066,1647,14.9%,resp_vulnerability_z,"1.20 (1.08, 1.34)",<0.001
+incident_chronic_lung_disease_w2_w5,svycox_plus_frailty,public_county_community,survey_HR,11062,1646,14.9%,resp_vulnerability_z,"1.16 (1.04, 1.30)",0.007
+incident_chronic_lung_disease_w2_w5,svycox_plus_frailty,public_county_community,survey_HR,11062,1646,14.9%,frailty_proxy_count_w1,"1.21 (1.14, 1.28)",<0.001
+incident_chronic_lung_disease_w2_w5,svycox_composite_disease_or_death,public_county_community,survey_HR,11066,2879,26.0%,resp_vulnerability_z,"1.25 (1.16, 1.35)",<0.001
+incident_chronic_lung_disease_w2_w5,svyglm_discrete_time,public_county_community,survey_OR,39396,1647,4.2%,resp_vulnerability_z,"1.23 (1.10, 1.37)",<0.001
+death_w2_w5,svycox_death,public_county_community,survey_HR,12569,1681,13.4%,resp_vulnerability_z,"1.33 (1.24, 1.43)",<0.001
+death_w2_w5,svycox_death_plus_frailty,public_county_community,survey_HR,12562,1680,13.4%,resp_vulnerability_z,"1.24 (1.15, 1.33)",<0.001
+death_w2_w5,svycox_death_plus_frailty,public_county_community,survey_HR,12562,1680,13.4%,frailty_proxy_count_w1,"1.37 (1.28, 1.46)",<0.001

@@ -1,0 +1,6 @@
+variable_a,label_a,variable_b,label_b,n,both_negative,a_only,b_only,both_positive,percent_agreement,weighted_percent_agreement,kappa
+obstruction_fixed_ratio_abc,Fixed ratio,obstruction_gli_global2022_abc,GLI Global 2022 LLN,6754,5321,566,3,864,91.57536274800118,91.22720137003851,0.7051609451296187
+obstruction_fixed_ratio_abc,Fixed ratio,obstruction_gli2012_abc,GLI-2012 LLN,6754,5315,582,9,848,91.24962984897839,90.55701359193593,0.6928435633038147
+obstruction_gli_global2022_abc,GLI Global 2022 LLN,obstruction_gli2012_abc,GLI-2012 LLN,6754,5852,45,35,822,98.81551673082618,98.85001917606813,0.9468076832733832
+prism_gli_global2022_z_abc,GLI Global 2022 PRISm-z,prism_gli_global2022_80_abc,GLI Global 2022 PRISm-80,6754,6037,70,340,307,93.92952324548416,95.88094861075813,0.5692238861601389
+prism_gli_global2022_z_abc,GLI Global 2022 PRISm-z,prism_gli2012_z_abc,GLI-2012 PRISm-z,6754,6263,126,114,251,96.44655019247853,96.74238106251259,0.6577551307382326

@@ -1,0 +1,26 @@
+outcome,model,estimand,n_obs,events,event_rate,term,effect_ci,p_formatted
+incident_chronic_lung_disease,cox_cause_specific_death_censored,HR,10997,1330,12.1%,resp_vulnerability_z,"1.26 (1.19, 1.33)",<0.001
+incident_chronic_lung_disease,cox_cause_specific_plus_frailty,HR,10993,1329,12.1%,resp_vulnerability_z,"1.22 (1.15, 1.29)",<0.001
+incident_chronic_lung_disease,cox_cause_specific_plus_frailty,HR,10993,1329,12.1%,frailty_proxy_count_w1,"1.23 (1.17, 1.30)",<0.001
+incident_chronic_lung_disease,cox_composite_disease_or_death,HR,10997,2229,20.3%,resp_vulnerability_z,"1.29 (1.23, 1.35)",<0.001
+incident_chronic_lung_disease,cox_raw_pef_sensitivity,HR,10997,1330,12.1%,pef_per_100_l_min,"0.81 (0.76, 0.85)",<0.001
+incident_chronic_lung_disease,cox_weighted_cause_specific,HR,10997,1330,12.1%,resp_vulnerability_z,"1.22 (1.08, 1.38)",0.001
+incident_asthma,cox_cause_specific_death_censored,HR,11656,462,4.0%,resp_vulnerability_z,"1.48 (1.34, 1.64)",<0.001
+incident_asthma,cox_cause_specific_plus_frailty,HR,11650,461,4.0%,resp_vulnerability_z,"1.44 (1.30, 1.60)",<0.001
+incident_asthma,cox_cause_specific_plus_frailty,HR,11650,461,4.0%,frailty_proxy_count_w1,"1.18 (1.09, 1.29)",<0.001
+incident_asthma,cox_composite_disease_or_death,HR,11656,1515,13.0%,resp_vulnerability_z,"1.40 (1.33, 1.48)",<0.001
+incident_asthma,cox_raw_pef_sensitivity,HR,11656,462,4.0%,pef_per_100_l_min,"0.69 (0.62, 0.76)",<0.001
+incident_asthma,cox_weighted_cause_specific,HR,11656,462,4.0%,resp_vulnerability_z,"1.22 (0.91, 1.64)",0.188
+death_w2_w4,cox_death,HR,12569,1198,9.5%,resp_vulnerability_z,"1.36 (1.28, 1.44)",<0.001
+death_w2_w4,cox_death_plus_frailty,HR,12562,1197,9.5%,resp_vulnerability_z,"1.28 (1.20, 1.36)",<0.001
+death_w2_w4,cox_death_plus_frailty,HR,12562,1197,9.5%,frailty_proxy_count_w1,"1.33 (1.26, 1.39)",<0.001
+death_w2_w4,cox_death_raw_pef_sensitivity,HR,12569,1198,9.5%,pef_per_100_l_min,"0.75 (0.71, 0.79)",<0.001
+death_w2_w4,cox_weighted_death,HR,12569,1198,9.5%,resp_vulnerability_z,"1.32 (1.21, 1.45)",<0.001
+incident_chronic_lung_disease,discrete_time_death_censored,OR,30685,1330,4.3%,resp_vulnerability_z,"1.29 (1.22, 1.36)",<0.001
+incident_chronic_lung_disease,discrete_time_plus_frailty,OR,30675,1329,4.3%,resp_vulnerability_z,"1.24 (1.17, 1.31)",<0.001
+incident_chronic_lung_disease,discrete_time_plus_frailty,OR,30675,1329,4.3%,frailty_proxy_count_w1,"1.27 (1.21, 1.34)",<0.001
+incident_chronic_lung_disease,discrete_time_weighted,OR,30685,1330,4.3%,resp_vulnerability_z,"1.26 (0.77, 2.07)",0.358
+incident_asthma,discrete_time_death_censored,OR,32865,462,1.4%,resp_vulnerability_z,"1.52 (1.38, 1.67)",<0.001
+incident_asthma,discrete_time_plus_frailty,OR,32849,461,1.4%,resp_vulnerability_z,"1.47 (1.33, 1.62)",<0.001
+incident_asthma,discrete_time_plus_frailty,OR,32849,461,1.4%,frailty_proxy_count_w1,"1.22 (1.12, 1.33)",<0.001
+incident_asthma,discrete_time_weighted,OR,32865,462,1.4%,resp_vulnerability_z,"1.25 (1.14, 1.37)",<0.001

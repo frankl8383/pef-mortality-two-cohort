@@ -1,0 +1,4 @@
+cycle,n,pef_quality_abc_n,residual_model_n,obstruction_abc_observed,obstruction_abc_yes,current_asthma_observed,current_asthma_yes,emphysema_or_bronchitis_observed,emphysema_or_bronchitis_yes,frailty_count_observed,frailty_ge2_yes
+2007-2008,3554,2340,2335,2238,523,3539,295,3542,391,2413,952
+2009-2010,3575,2518,2509,2408,493,3561,281,3563,289,2403,921
+2011-2012,3141,2236,2218,2140,422,3127,258,3127,257,2070,739

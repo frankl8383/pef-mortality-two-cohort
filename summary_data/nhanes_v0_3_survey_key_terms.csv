@@ -1,0 +1,7 @@
+analysis_id,outcome_label,exposure,n,events,or_per_1sd_higher_respiratory_vulnerability,ci,p_value
+nhanes_v0_3_obstruction_abc,"Spirometric obstruction, A/B/C quality",resp_vulnerability_z,6727,1422,3.281,2.930-3.673,<0.001
+nhanes_v0_3_obstruction_ab_strict,"Spirometric obstruction, strict A/B quality",resp_vulnerability_z,5984,1244,3.426,2.992-3.924,<0.001
+nhanes_v0_3_current_asthma,Current asthma,resp_vulnerability_z,7017,512,1.631,1.363-1.952,<0.001
+nhanes_v0_3_emphysema_or_bronchitis,Self-reported emphysema or chronic bronchitis,resp_vulnerability_z,7026,525,1.785,1.527-2.086,<0.001
+nhanes_v0_3_frailty_proxy_ge2,NHANES frailty proxy >=2 components,resp_vulnerability_z,4379,1368,1.476,1.334-1.632,<0.001
+nhanes_v0_3_obstruction_race_calibrated,"Spirometric obstruction, race-calibrated exposure",resp_vulnerability_z_race_calibrated,6727,1422,3.252,2.910-3.634,<0.001
