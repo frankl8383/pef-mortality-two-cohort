@@ -3,7 +3,6 @@
 ## Project: MIMIC-IV sepsis-ARDS ventilator mechanics -> 28-day mortality
 ## Step 5: Formal predictive modeling (logistic primary; Cox/MI/slope sensitivity)
 ##
-## Author: (analysis by Claude Science, supervised by project PhD student)
 ## Environment: conda env 'icu-vent'
 ##   R 4.5.3 | data.table 1.17.8 | survival 3.8.6 | rms 8.1.1
 ##   pROC 1.19.0.1 | mice 3.19.0 | ggplot2 4.0.3 | gridExtra 2.3.1

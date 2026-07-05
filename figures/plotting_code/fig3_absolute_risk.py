@@ -1,10 +1,7 @@
 """
-Publication figure generator — extracted from analysis session lineage.
-Figures were rendered with matplotlib in a Python 3.11 environment.
-Inputs are the aggregate summary CSVs in ../summary_data/ (no row-level data).
-Local absolute paths in the original session have been left as-is inside string
-literals ONLY where they reference artifact inputs; replace with your local copy
-of the corresponding summary CSV. No controlled/row-level data is required.
+Publication figure generator (matplotlib, Python 3.11).
+Reads the aggregate summary CSV in ../summary_data/ and renders the figure.
+No individual-level or controlled-access data are required.
 """
 
 import matplotlib.pyplot as plt

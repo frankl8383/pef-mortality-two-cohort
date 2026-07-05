@@ -1,10 +1,7 @@
 """
-Publication figure generator — extracted from analysis session lineage.
-Figures were rendered with matplotlib in a Python 3.11 environment.
-Inputs are the aggregate summary CSVs in ../summary_data/ (no row-level data).
-Local absolute paths in the original session have been left as-is inside string
-literals ONLY where they reference artifact inputs; replace with your local copy
-of the corresponding summary CSV. No controlled/row-level data is required.
+Publication figure generator (matplotlib, Python 3.11).
+Reads the aggregate summary CSV in ../summary_data/ and renders the figure.
+No individual-level or controlled-access data are required.
 """
 
 # skill:figure-style kernel.py (auto-injected on skill load)
@@ -69,7 +66,7 @@ set.seed = None  # not needed in Python path
 # Load the data
 import pandas as pd
 
-d0_path = "${HOME}/.claude-science/orgs/856a475a-d0be-450c-b905-47bbd7e2d546/artifacts/proj_05e754e6a4d7/602fecae-8210-4210-baea-dbdb0ab98075/v711cf3e6_incremental_value_M2base_models_v1_0.csv"
+d0_path = "../summary_data/incremental_value_M2base_models_v1_0.csv"
 
 # The figure is produced by the R code block that uses ggplot2
 # But since we need Python, we reproduce from the CSV data
