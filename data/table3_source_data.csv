@@ -1,0 +1,21 @@
+cohort,assumption,analysis,n,deaths,result,hr,ci_low,ci_high,analysis_id,status
+CHARLS,Multiple imputation,Primary model,12555.0,1735.0,1.425 (1.313--1.548),1.4254815272918,1.31273794560704,1.54790801275308,v44_s3_charls_pc_e0_a1,ESTIMATED
+CHARLS,Missing data,Complete case,10346.0,1375.0,1.395 (1.269--1.533),1.39453845740706,1.26882483415541,1.53270763373872,v44_s3_charls_pc_e0_a1_complete_case,ESTIMATED
+CHARLS,Early follow-up,Wave 2 conditional-survivor,11981.0,1394.0,1.421 (1.304--1.548),1.42109614944112,1.30443081763094,1.54819576374633,v44_s3_charls_pc_e0_a1_w2_landmark_conditional_survivor,ESTIMATED
+CHARLS,PEF measurement,PEF boundary values excluded,12379.0,1680.0,1.463 (1.340--1.597),1.46313097271873,1.34012916634718,1.59742232098713,v44_s3_charls_pc_e0_a1_boundary_excluded,ESTIMATED
+CHARLS,PEF measurement,Strict PEF measurement,9729.0,1246.0,1.406 (1.277--1.548),1.40591241125175,1.27684853757287,1.54802206365758,v44_s3_charls_pc_e0_a1_strict_measurement,ESTIMATED
+CHARLS,Anthropometry,WHO component-only routing,12555.0,1735.0,1.425 (1.312--1.547),1.42472896797926,1.3120324931905,1.54710545869425,v44_s3_charls_pc_e0_a1_who_component_no_later_aux,ESTIMATED
+CHARLS,Anthropometry,PCORnet-style block bounds,12555.0,1735.0,1.431 (1.318--1.554),1.430778283995,1.31769499569693,1.55356626885339,v44_s3_charls_pc_e0_a1_pcornet_block_no_later_aux,ESTIMATED
+NHANES,Multiple imputation,Primary model,6719.0,925.0,1.453 (1.312--1.608),1.452707152858889,1.312020568159078,1.608479411971769,v43_s3_nhanes_pn_e0_a1,ESTIMATED
+NHANES,Missing data,Complete case,5565.0,734.0,1.426 (1.271--1.600),1.4259082258032216,1.270595715589043,1.6002055126328687,v43_s3_nhanes_pn_e0_a1_complete_case,ESTIMATED
+NHANES,Early follow-up,Two-year conditional-survivor,6615.0,821.0,1.416 (1.270--1.579),1.4158925074286834,1.2696479441930326,1.5789822696612734,v43_s3_nhanes_pn_e0_two_year_landmark_a1,ESTIMATED
+NHANES,Spirometry quality,Grade A with at least 3 acceptable curves,6634.0,905.0,1.481 (1.336--1.643),1.4811798339346671,1.3355451855617724,1.6426952260188092,v43_s3_nhanes_pn_e0_pef_A_acc3_a1,ESTIMATED
+NHANES,Spirometry quality,Grades A or C,6971.0,967.0,1.460 (1.327--1.606),1.4599307131322945,1.326977743805429,1.60620454796376,v43_s3_nhanes_pn_e0_pef_A_plus_C_a1,ESTIMATED
+NHANES,Spirometry quality,"Grades A, B, or C",7083.0,989.0,1.463 (1.332--1.607),1.4632049908424656,1.332323528247616,1.606943658829085,v43_s3_nhanes_pn_e0_pef_ABC_a1,ESTIMATED
+NHANES,High PEF values,Values >900 L/min excluded,6714.0,925.0,1.451 (1.310--1.607),1.450835801214954,1.3096585394607858,1.6072315482733992,v43_s3_nhanes_pn_e0_gt900_influence_exclusion_a1,ESTIMATED
+NHANES,Survey cycle,Cycle E excluded,4480.0,511.0,1.508 (1.306--1.741),1.5082306454777987,1.306349612386441,1.7413100278744245,v43_s3_nhanes_pn_e0_leave_cycle_E_a1,ESTIMATED
+NHANES,Survey cycle,Cycle F excluded,4309.0,619.0,1.441 (1.293--1.607),1.4412927133531603,1.2926199454533127,1.6070653194481008,v43_s3_nhanes_pn_e0_leave_cycle_F_a1,ESTIMATED
+NHANES,Survey cycle,Cycle G excluded,4649.0,720.0,1.433 (1.271--1.615),1.432586021025299,1.2705356708979,1.6153050674970155,v43_s3_nhanes_pn_e0_leave_cycle_G_a1,ESTIMATED
+CHARLS,Anthropometric auxiliaries,Later-wave auxiliary variant,,,Not stably estimable; no mortality model fitted,,,,who_block_later_aux,NOT_STABLY_ESTIMABLE
+NHANES,Older-adult routing boundary,"Age 60–79, A1",3346.0,701.0,Not estimable; no coefficient reported,,,,v43_s3_nhanes_pn_e0_age60_79_a1,NOT_ESTIMABLE
+NHANES,Older-adult routing boundary,"Age 60–79, A2",3346.0,701.0,Not attempted after the paired A1 model was not estimable,,,,v43_s3_nhanes_pn_e0_age60_79_a2,NOT_ATTEMPTED_PANEL_DEPENDENCY

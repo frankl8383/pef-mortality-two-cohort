@@ -1,0 +1,24 @@
+cohort,step_order,step_id,step_label,n,excluded_from_previous,deaths,record_type,branch,branch_type
+CHARLS,1.0,source_core,Harmonized CHARLS core records,25586,0.0,2842,sequential_flow,,
+CHARLS,2.0,wave1_known_alive,Wave 1 interviewed/known alive,17708,7878.0,2473,sequential_flow,,
+CHARLS,3.0,age_45_plus,Age at least 45 years,16931,777.0,2381,sequential_flow,,
+CHARLS,4.0,positive_biomarker_weight,Positive Wave 1 biomarker survey weight,13432,3499.0,1912,sequential_flow,,
+CHARLS,5.0,known_sex,Known sex,13432,0.0,1912,sequential_flow,,
+CHARLS,6.0,valid_wave1_rowmax_pef,"Valid Wave 1 maximum of trials, 30-890 L/min",12766,666.0,1735,sequential_flow,,
+CHARLS,7.0,subsequent_vital_status_known,At least one explicit W2-W5 vital status,12555,211.0,1735,sequential_flow,,
+NHANES,1.0,all_demo,All NHANES 2007–2012 demographic records,30442,,2615,sequential_flow,,
+NHANES,2.0,age_45_79,Age 45-79,9043,21399.0,1589,sequential_flow,,
+NHANES,3.0,age_45_79_mec,MEC examined and mortality-file matched,8763,280.0,1519,sequential_flow,,
+NHANES,4.0,target_linked,Mortality-linkage eligible (ELIGSTAT=1),8750,13.0,1519,sequential_flow,,
+NHANES,5.0,safe_target,Spirometry status available and no official safety exclusion,7926,824.0,1228,sequential_flow,,
+NHANES,6.0,pef_nonmissing,Positive nonmissing SPXNPEF,7097,829.0,993,sequential_flow,,
+NHANES,7.0,pef_A_only,Primary sample: grade-A spirometry,6719,378.0,925,sequential_flow,,
+CHARLS,,,,12555,,1735,analysis_branch,Primary multiple-imputation analysis,primary
+CHARLS,,,,10346,,1375,analysis_branch,Complete-case sensitivity,sensitivity
+CHARLS,,,,11981,,1394,analysis_branch,Wave 2 conditional-survivor sensitivity,sensitivity
+NHANES,,,,6719,,925,analysis_branch,Primary multiple-imputation analysis,primary
+NHANES,,,,5565,,734,analysis_branch,Complete-case sensitivity,sensitivity
+NHANES,,,,6615,,821,analysis_branch,Two-year conditional-survivor sensitivity,sensitivity
+NHANES,,,,6634,,905,analysis_branch,Quality A plus at least 3 acceptable curves,quality
+NHANES,,,,6971,,967,analysis_branch,Quality A or C,quality
+NHANES,,,,7083,,989,analysis_branch,Quality A/B/C,quality

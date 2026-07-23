@@ -1,8 +1,0 @@
-metric,value
-core_rows,25586
-wave5_rows,20180
-core_with_wave5_lung_status,17134
-core_with_wave5_death_status,19884
-wave5_lung_yes_linked_core,786
-wave5_deaths_linked_core,776
-baseline_lung_at_risk_with_wave5_or_prior_followup,11066

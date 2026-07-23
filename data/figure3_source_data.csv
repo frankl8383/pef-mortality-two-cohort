@@ -1,0 +1,11 @@
+cohort,analysis,n,deaths,hr,ci_low,ci_high,primary,analysis_id,scale
+CHARLS,Primary: WHO-block QC; PEF boundaries retained,12555,1735,1.4254815272918,1.31273794560704,1.54790801275308,True,v44_s3_charls_pc_e0_a1,1 sex-specific within-cohort weighted SD lower raw PEF
+CHARLS,PEF boundary values 30/890 L/min excluded,12379,1680,1.46313097271873,1.34012916634718,1.59742232098713,False,v44_s3_charls_pc_e0_a1_boundary_excluded,1 sex-specific within-cohort weighted SD lower raw PEF
+CHARLS,"Standing, full effort, and at least 2 valid trials",9729,1246,1.40591241125175,1.27684853757287,1.54802206365758,False,v44_s3_charls_pc_e0_a1_strict_measurement,1 sex-specific within-cohort weighted SD lower raw PEF
+CHARLS,WHO component-only anthropometric invalidation,12555,1735,1.42472896797926,1.3120324931905,1.54710545869425,False,v44_s3_charls_pc_e0_a1_who_component_no_later_aux,1 sex-specific within-cohort weighted SD lower raw PEF
+CHARLS,Stricter PCORnet-style block bounds,12555,1735,1.430778283995,1.31769499569693,1.55356626885339,False,v44_s3_charls_pc_e0_a1_pcornet_block_no_later_aux,1 sex-specific within-cohort weighted SD lower raw PEF
+NHANES,Grade A (primary sample),6719,925,1.452707152858889,1.312020568159078,1.608479411971769,True,v43_s3_nhanes_pn_e0_a1,1 sex-specific within-cohort weighted SD lower raw PEF
+NHANES,Grade A with at least 3 acceptable curves,6634,905,1.4811798339346671,1.3355451855617724,1.6426952260188092,False,v43_s3_nhanes_pn_e0_pef_A_acc3_a1,1 sex-specific within-cohort weighted SD lower raw PEF
+NHANES,Grades A or C,6971,967,1.4599307131322945,1.326977743805429,1.60620454796376,False,v43_s3_nhanes_pn_e0_pef_A_plus_C_a1,1 sex-specific within-cohort weighted SD lower raw PEF
+NHANES,"Grades A, B, or C",7083,989,1.4632049908424656,1.332323528247616,1.606943658829085,False,v43_s3_nhanes_pn_e0_pef_ABC_a1,1 sex-specific within-cohort weighted SD lower raw PEF
+NHANES,"Values >900 L/min excluded, influence diagnostic",6714,925,1.450835801214954,1.3096585394607858,1.6072315482733992,False,v43_s3_nhanes_pn_e0_gt900_influence_exclusion_a1,1 sex-specific within-cohort weighted SD lower raw PEF

@@ -1,4 +1,0 @@
-outcome,n,disease_events,deaths,competing_deaths_before_disease,composite_events,unique_psu_community,unique_county_pseudo,weighted_n
-incident_chronic_lung_disease,10997,1330,NA,899,2229,431,150,420201398.6308594
-incident_asthma,11656,462,NA,1053,1515,431,150,443779608.3359375
-death_w2_w4,12569,NA,1198,NA,NA,434,150,488616764.4941406
