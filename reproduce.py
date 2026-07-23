@@ -1,20 +1,22 @@
 #!/usr/bin/env python3
-"""Build manuscript displays from disclosure-safe aggregate-only sources.
+"""Reproduce manuscript Tables 1-3 and Figures 1-3 from aggregate data.
 
-This script never opens participant-level data. It verifies the SHA-256 of
-every aggregate input before producing source-data CSVs, LaTeX tables, figures,
-and a build manifest.
+The six inputs are disclosure-safe, manuscript-facing source-data files. This
+script does not open participant-level data, run multiple imputation, or refit
+the cohort models. It verifies every input before producing the display files
+and an auditable SHA-256 manifest.
 """
 
 from __future__ import annotations
 
-import csv
 import hashlib
 import math
 import textwrap
 from pathlib import Path
 
 import matplotlib as mpl
+
+mpl.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -23,39 +25,52 @@ from matplotlib.ticker import FuncFormatter, LogLocator, NullFormatter
 from PIL import Image
 
 
-PROJECT = Path(__file__).resolve().parents[1]
-OUT = PROJECT / "rebuild"
+ROOT = Path(__file__).resolve().parent
+DATA_DIR = ROOT / "data"
+OUT = ROOT / "output"
 FIG_DIR = OUT / "figures"
 TABLE_DIR = OUT / "tables"
-SOURCE_DIR = OUT / "source_data"
 
-SOURCES = {
-    "charls_registry": (
-        PROJECT
-        / "results/v44_1_1/stage3_charls_primary_association_registry_v44_1_1.csv",
-        "ac05ec1528c413a6355684e8faca408d12bce393f1d5fb4d3748bf86495d00bd",
+INPUTS = {
+    "figure1": (
+        DATA_DIR / "figure1_source_data.csv",
+        "ce799bc0351439d300647aa135fd662a412baa2b839f2c617144afa9fc5ca64e",
     ),
-    "charls_anthro": (
-        PROJECT
-        / "results/v44_1_1/stage3_charls_anthropometric_sensitivity_registry_v44_1_1.csv",
-        "f123e879a27d832c8b28a5f6407766bbe1927bf0234ed6f2481606f0fd0b5d41",
+    "figure2": (
+        DATA_DIR / "figure2_source_data.csv",
+        "aa9f9f4c30b40f62be682f21caf0098b87b0d788f6b0a2af5bf6b48f1a9a2671",
     ),
-    "nhanes_registry": (
-        PROJECT / "results/v43/stage3_nhanes_primary_association_registry_v43.csv",
-        "e6257e8483e416ad43b39624f431bbdbda141186eb4e87e00bcb4f68374e1b76",
-    ),
-    "charls_flow": (
-        PROJECT / "results/v43/charls_sequential_flow_v43.csv",
-        "61f8013b4139f10e1a40181bd45eb3192a4763dfff81a174c61a81aa843439e9",
-    ),
-    "nhanes_flow": (
-        PROJECT / "results/v43/nhanes_cohort_flow_v43.csv",
-        "8bd7b6d7531d9ed74efab3068a9efaaf3840bc2adfb868b86b843957b10b3843",
+    "figure3": (
+        DATA_DIR / "figure3_source_data.csv",
+        "370bc7275f640fbd3fc434a5248b9334d4970ae409b7ae3af6f89d79406d7b64",
     ),
     "table1": (
-        PROJECT / "results/v44_2/table1_baseline_characteristics_source_v44_2.csv",
+        DATA_DIR / "table1_source_data.csv",
         "2172d7cdaf5dfc57191a89a250b4892959ec81f9d81af860640210c157b3f4c4",
     ),
+    "table2": (
+        DATA_DIR / "table2_source_data.csv",
+        "710ca9ad7c986b6f1fded4dcc34d5e042a301d5b9b7b8cc068ea5d25f7dfd0b4",
+    ),
+    "table3": (
+        DATA_DIR / "table3_source_data.csv",
+        "6d4b94b67b3b0202b1dcbd57f21cee6c8a2dc721ffe1b22bbeb4af98905f9d92",
+    ),
+}
+
+EXPECTED_TABLES = {
+    "table1_baseline.tex":
+        "dee6968c47224f6ff07b4f7c600959cadafa70932771a6ecdcc0c7680eea72a5",
+    "table2_primary_associations.tex":
+        "f62925ad434ccaff1e8406b0f09c7bf1dc69f9776ed1e897998cf523ccdbbf8a",
+    "table3_sensitivity.tex":
+        "c3fcf286c59be719a2a993c940935cacbb9799d187bd1c86bd08c54be188b82f",
+}
+
+EXPECTED_TIFFS = {
+    "figure1_cohort_flow.tiff": (4014, 3810),
+    "figure2_adjustment_ladder.tiff": (4014, 2670),
+    "figure3_measurement_robustness.tiff": (4014, 3720),
 }
 
 CHARLS = "#2F6B9A"
@@ -74,44 +89,21 @@ def sha256(path: Path) -> str:
     return h.hexdigest()
 
 
-def verify_sources() -> None:
-    for name, (path, expected) in SOURCES.items():
+def verify_inputs() -> None:
+    for name, (path, expected) in INPUTS.items():
         if not path.exists():
-            raise FileNotFoundError(f"Missing frozen aggregate source: {name}")
+            raise FileNotFoundError(f"Missing aggregate input: {path.name}")
         observed = sha256(path)
         if observed != expected:
             raise RuntimeError(
-                f"Frozen aggregate hash mismatch for {name}: "
+                f"Aggregate input hash mismatch for {name}: "
                 f"expected {expected}, observed {observed}"
             )
 
 
 def prepare_dirs() -> None:
-    for path in (FIG_DIR, TABLE_DIR, SOURCE_DIR):
+    for path in (FIG_DIR, TABLE_DIR):
         path.mkdir(parents=True, exist_ok=True)
-
-
-def row_by_id(frame: pd.DataFrame, analysis_id: str) -> pd.Series:
-    rows = frame.loc[frame["analysis_id"] == analysis_id]
-    if len(rows) != 1:
-        raise RuntimeError(
-            f"Expected exactly one aggregate row for {analysis_id}; found {len(rows)}"
-        )
-    return rows.iloc[0]
-
-
-def hr_fields(row: pd.Series, nhanes: bool = False) -> tuple[float, float, float]:
-    if nhanes:
-        return (
-            float(row["exp_estimate"]),
-            float(row["exp_ci_low"]),
-            float(row["exp_ci_high"]),
-        )
-    return (
-        float(row["hazard_ratio"]),
-        float(row["hr_ci_low"]),
-        float(row["hr_ci_high"]),
-    )
 
 
 def fmt_int(value: float | int | str) -> str:
@@ -144,12 +136,6 @@ def tex_escape(value: object) -> str:
     text = text.replace("–", "--")
     text = text.replace("²", r"$^2$")
     return text
-
-
-def write_source_csv(frame: pd.DataFrame, filename: str) -> Path:
-    path = SOURCE_DIR / filename
-    frame.to_csv(path, index=False, quoting=csv.QUOTE_MINIMAL)
-    return path
 
 
 def save_figure(fig: plt.Figure, stem: str) -> list[Path]:
@@ -283,156 +269,13 @@ def draw_vertical_arrow(
     ax.add_patch(arrow)
 
 
-def build_figure1(
-    charls_flow: pd.DataFrame,
-    nhanes_flow: pd.DataFrame,
-    charls_registry: pd.DataFrame,
-    nhanes_registry: pd.DataFrame,
-) -> tuple[pd.DataFrame, list[Path]]:
-    c = charls_flow.loc[
-        charls_flow["flow_branch"] == "primary_P_C_upper_bound"
-    ].sort_values("step_order").copy()
-    c.loc[c.index[0], "step_label"] = "Harmonized CHARLS core records"
-    n_core = nhanes_flow.loc[nhanes_flow["flow_branch"] == "core"].copy()
-    n_quality = nhanes_flow.loc[nhanes_flow["flow_branch"] == "pef_quality"].copy()
-    n_selected = pd.concat(
-        [
-            n_core.loc[n_core["step_id"].isin(["all_demo", "age_45_79", "age_45_79_mec"])],
-            n_core.loc[n_core["step_id"] == "target_linked"],
-            n_core.loc[n_core["step_id"] == "safe_target"],
-            n_quality.loc[n_quality["step_id"] == "pef_nonmissing"],
-            n_quality.loc[n_quality["step_id"] == "pef_A_only"],
-        ],
-        ignore_index=True,
-    )
-    n_selected["step_order"] = range(1, len(n_selected) + 1)
-    n_selected["excluded_from_previous"] = (
-        n_selected["n"].shift(1) - n_selected["n"]
-    )
-    n_selected.loc[n_selected.index[0], "excluded_from_previous"] = np.nan
-    n_selected.loc[
-        n_selected["step_id"] == "age_45_79_mec", "step_label"
-    ] = "MEC examined and mortality-file matched"
-    n_selected.loc[
-        n_selected["step_id"] == "all_demo", "step_label"
-    ] = "All NHANES 2007–2012 demographic records"
-    n_selected.loc[
-        n_selected["step_id"] == "target_linked", "step_label"
-    ] = "Mortality-linkage eligible (ELIGSTAT=1)"
-    n_selected.loc[
-        n_selected["step_id"] == "safe_target", "step_label"
-    ] = "Spirometry status available and no official safety exclusion"
-    n_selected.loc[
-        n_selected["step_id"] == "pef_A_only", "step_label"
-    ] = "Primary sample: grade-A spirometry"
-
-    c_cc = row_by_id(charls_registry, "v44_s3_charls_pc_e0_a1_complete_case")
-    c_land = row_by_id(
-        charls_registry, "v44_s3_charls_pc_e0_a1_w2_landmark_conditional_survivor"
-    )
-    n_cc = row_by_id(nhanes_registry, "v43_s3_nhanes_pn_e0_a1_complete_case")
-    n_land = row_by_id(
-        nhanes_registry, "v43_s3_nhanes_pn_e0_two_year_landmark_a1"
-    )
-    branch_rows = pd.DataFrame(
-        [
-            {
-                "cohort": "CHARLS",
-                "branch": "Primary multiple-imputation analysis",
-                "n": 12555,
-                "deaths": 1735,
-                "branch_type": "primary",
-            },
-            {
-                "cohort": "CHARLS",
-                "branch": "Complete-case sensitivity",
-                "n": int(c_cc["n"]),
-                "deaths": int(c_cc["events"]),
-                "branch_type": "sensitivity",
-            },
-            {
-                "cohort": "CHARLS",
-                "branch": "Wave 2 conditional-survivor sensitivity",
-                "n": int(c_land["n"]),
-                "deaths": int(c_land["events"]),
-                "branch_type": "sensitivity",
-            },
-            {
-                "cohort": "NHANES",
-                "branch": "Primary multiple-imputation analysis",
-                "n": 6719,
-                "deaths": 925,
-                "branch_type": "primary",
-            },
-            {
-                "cohort": "NHANES",
-                "branch": "Complete-case sensitivity",
-                "n": int(n_cc["n"]),
-                "deaths": int(n_cc["events"]),
-                "branch_type": "sensitivity",
-            },
-            {
-                "cohort": "NHANES",
-                "branch": "Two-year conditional-survivor sensitivity",
-                "n": int(n_land["n"]),
-                "deaths": int(n_land["events"]),
-                "branch_type": "sensitivity",
-            },
-            {
-                "cohort": "NHANES",
-                "branch": "Quality A plus at least 3 acceptable curves",
-                "n": 6634,
-                "deaths": 905,
-                "branch_type": "quality",
-            },
-            {
-                "cohort": "NHANES",
-                "branch": "Quality A or C",
-                "n": 6971,
-                "deaths": 967,
-                "branch_type": "quality",
-            },
-            {
-                "cohort": "NHANES",
-                "branch": "Quality A/B/C",
-                "n": 7083,
-                "deaths": 989,
-                "branch_type": "quality",
-            },
-        ]
-    )
-    flow_source = pd.concat(
-        [
-            c.assign(cohort="CHARLS")[
-                [
-                    "cohort",
-                    "step_order",
-                    "step_id",
-                    "step_label",
-                    "n",
-                    "excluded_from_previous",
-                    "deaths",
-                ]
-            ],
-            n_selected.assign(cohort="NHANES")[
-                [
-                    "cohort",
-                    "step_order",
-                    "step_id",
-                    "step_label",
-                    "n",
-                    "excluded_from_previous",
-                    "deaths",
-                ]
-            ],
-        ],
-        ignore_index=True,
-    )
-    flow_source["record_type"] = "sequential_flow"
-    branch_export = branch_rows.copy()
-    branch_export["record_type"] = "analysis_branch"
-    source = pd.concat([flow_source, branch_export], ignore_index=True, sort=False)
-    write_source_csv(source, "figure1_source_data.csv")
+def build_figure1(source: pd.DataFrame) -> list[Path]:
+    sequential = source.loc[source["record_type"] == "sequential_flow"].copy()
+    c = sequential.loc[sequential["cohort"] == "CHARLS"].sort_values("step_order")
+    n_selected = sequential.loc[
+        sequential["cohort"] == "NHANES"
+    ].sort_values("step_order")
+    branch_rows = source.loc[source["record_type"] == "analysis_branch"].copy()
 
     fig, axes = plt.subplots(1, 2, figsize=(6.69, 6.35))
     panels = [
@@ -597,7 +440,7 @@ def build_figure1(
                 color="#6B7280",
             )
     fig.subplots_adjust(left=0.02, right=0.98, bottom=0.02, top=0.96, wspace=0.12)
-    return source, save_figure(fig, "figure1_cohort_flow")
+    return save_figure(fig, "figure1_cohort_flow")
 
 
 def forest_panel(
@@ -683,39 +526,7 @@ def forest_panel(
     )
 
 
-def build_figure2(
-    charls_registry: pd.DataFrame, nhanes_registry: pd.DataFrame
-) -> tuple[pd.DataFrame, list[Path]]:
-    records = []
-    for cohort, registry, prefix, nhanes, color in (
-        ("CHARLS", charls_registry, "v44_s3_charls_pc_e0_", False, CHARLS),
-        ("NHANES", nhanes_registry, "v43_s3_nhanes_pn_e0_", True, NHANES),
-    ):
-        for tier, label in (
-            ("a0", "A0: demographic/body-size"),
-            ("a1", "A1: primary model"),
-            ("a2", "A2: extended health/function"),
-        ):
-            row = row_by_id(registry, f"{prefix}{tier}")
-            hr, low, high = hr_fields(row, nhanes=nhanes)
-            records.append(
-                {
-                    "cohort": cohort,
-                    "model_tier": tier.upper(),
-                    "label": label,
-                    "n": int(row["n"]),
-                    "deaths": int(row["events"]),
-                    "hr": hr,
-                    "ci_low": low,
-                    "ci_high": high,
-                    "primary": tier == "a1",
-                    "analysis_id": row["analysis_id"],
-                    "cohort_color": color,
-                }
-            )
-    source = pd.DataFrame(records)
-    write_source_csv(source.drop(columns="cohort_color"), "figure2_source_data.csv")
-
+def build_figure2(source: pd.DataFrame) -> list[Path]:
     fig, axes = plt.subplots(2, 1, figsize=(6.69, 4.45), sharex=True)
     for idx, (ax, cohort, color) in enumerate(
         [(axes[0], "CHARLS", CHARLS), (axes[1], "NHANES", NHANES)]
@@ -741,116 +552,10 @@ def build_figure2(
         )
     axes[1].set_xlabel("Hazard ratio for all-cause mortality (log scale)")
     fig.subplots_adjust(left=0.33, right=0.67, top=0.94, bottom=0.13, hspace=0.40)
-    return source, save_figure(fig, "figure2_adjustment_ladder")
+    return save_figure(fig, "figure2_adjustment_ladder")
 
 
-def build_figure3(
-    charls_registry: pd.DataFrame,
-    charls_anthro: pd.DataFrame,
-    nhanes_registry: pd.DataFrame,
-) -> tuple[pd.DataFrame, list[Path]]:
-    specs = [
-        (
-            "CHARLS",
-            charls_registry,
-            "v44_s3_charls_pc_e0_a1",
-            "Primary: WHO-block QC; PEF boundaries retained",
-            False,
-            True,
-        ),
-        (
-            "CHARLS",
-            charls_registry,
-            "v44_s3_charls_pc_e0_a1_boundary_excluded",
-            "PEF boundary values 30/890 L/min excluded",
-            False,
-            False,
-        ),
-        (
-            "CHARLS",
-            charls_registry,
-            "v44_s3_charls_pc_e0_a1_strict_measurement",
-            "Standing, full effort, and at least 2 valid trials",
-            False,
-            False,
-        ),
-        (
-            "CHARLS",
-            charls_anthro,
-            "v44_s3_charls_pc_e0_a1_who_component_no_later_aux",
-            "WHO component-only anthropometric invalidation",
-            False,
-            False,
-        ),
-        (
-            "CHARLS",
-            charls_anthro,
-            "v44_s3_charls_pc_e0_a1_pcornet_block_no_later_aux",
-            "Stricter PCORnet-style block bounds",
-            False,
-            False,
-        ),
-        (
-            "NHANES",
-            nhanes_registry,
-            "v43_s3_nhanes_pn_e0_a1",
-            "Grade A (primary sample)",
-            True,
-            True,
-        ),
-        (
-            "NHANES",
-            nhanes_registry,
-            "v43_s3_nhanes_pn_e0_pef_A_acc3_a1",
-            "Grade A with at least 3 acceptable curves",
-            True,
-            False,
-        ),
-        (
-            "NHANES",
-            nhanes_registry,
-            "v43_s3_nhanes_pn_e0_pef_A_plus_C_a1",
-            "Grades A or C",
-            True,
-            False,
-        ),
-        (
-            "NHANES",
-            nhanes_registry,
-            "v43_s3_nhanes_pn_e0_pef_ABC_a1",
-            "Grades A, B, or C",
-            True,
-            False,
-        ),
-        (
-            "NHANES",
-            nhanes_registry,
-            "v43_s3_nhanes_pn_e0_gt900_influence_exclusion_a1",
-            "Values >900 L/min excluded, influence diagnostic",
-            True,
-            False,
-        ),
-    ]
-    records = []
-    for cohort, registry, aid, label, nhanes, primary in specs:
-        row = row_by_id(registry, aid)
-        hr, low, high = hr_fields(row, nhanes=nhanes)
-        records.append(
-            {
-                "cohort": cohort,
-                "analysis": label,
-                "n": int(row["n"]),
-                "deaths": int(row["events"]),
-                "hr": hr,
-                "ci_low": low,
-                "ci_high": high,
-                "primary": primary,
-                "analysis_id": aid,
-                "scale": "1 sex-specific within-cohort weighted SD lower raw PEF",
-            }
-        )
-    source = pd.DataFrame(records)
-    write_source_csv(source, "figure3_source_data.csv")
+def build_figure3(source: pd.DataFrame) -> list[Path]:
     fig, axes = plt.subplots(2, 1, figsize=(6.69, 6.20), sharex=True)
     for idx, (ax, cohort, color) in enumerate(
         [(axes[0], "CHARLS", CHARLS), (axes[1], "NHANES", NHANES)]
@@ -876,17 +581,20 @@ def build_figure3(
         )
     axes[1].set_xlabel("Hazard ratio per sex-specific SD lower PEF (log scale)")
     fig.subplots_adjust(left=0.43, right=0.66, top=0.96, bottom=0.10, hspace=0.35)
-    return source, save_figure(fig, "figure3_measurement_robustness")
+    return save_figure(fig, "figure3_measurement_robustness")
 
 
 def table1_characteristic_rows(table1: pd.DataFrame) -> list[str]:
     lines: list[str] = []
     for cohort, panel in (("CHARLS", "A"), ("NHANES", "B")):
         part = table1.loc[table1["cohort"] == cohort].copy()
-        if cohort == "CHARLS":
-            n, deaths = 12555, 1735
-        else:
-            n, deaths = 6719, 925
+        cohort_n = pd.to_numeric(part["group_n_unweighted"], errors="raise").unique()
+        cohort_deaths = pd.to_numeric(
+            part["group_events_unweighted"], errors="raise"
+        ).unique()
+        if len(cohort_n) != 1 or len(cohort_deaths) != 1:
+            raise RuntimeError(f"Table 1 {cohort} panel totals are inconsistent")
+        n, deaths = int(cohort_n[0]), int(cohort_deaths[0])
         lines.append(
             rf"\multicolumn{{3}}{{l}}{{\textbf{{Panel {panel}. {cohort} "
             rf"(N={n:,}; deaths={deaths:,})}}}} \\"
@@ -949,39 +657,7 @@ def write_table1(table1: pd.DataFrame) -> Path:
     )
     path = TABLE_DIR / "table1_baseline.tex"
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    table1.to_csv(SOURCE_DIR / "table1_source_data.csv", index=False)
     return path
-
-
-def table2_records(
-    charls_registry: pd.DataFrame, nhanes_registry: pd.DataFrame
-) -> pd.DataFrame:
-    records = []
-    for cohort, registry, prefix, nhanes in (
-        ("CHARLS", charls_registry, "v44_s3_charls_pc_", False),
-        ("NHANES", nhanes_registry, "v43_s3_nhanes_pn_", True),
-    ):
-        for exposure, scale in (
-            ("e0", "1 sex-specific SD lower"),
-            ("e0b", "100 L/min lower"),
-        ):
-            for tier in ("a0", "a1", "a2"):
-                row = row_by_id(registry, f"{prefix}{exposure}_{tier}")
-                hr, low, high = hr_fields(row, nhanes=nhanes)
-                records.append(
-                    {
-                        "cohort": cohort,
-                        "scale": scale,
-                        "model_tier": tier.upper(),
-                        "n": int(row["n"]),
-                        "deaths": int(row["events"]),
-                        "hr": hr,
-                        "ci_low": low,
-                        "ci_high": high,
-                        "analysis_id": row["analysis_id"],
-                    }
-                )
-    return pd.DataFrame(records)
 
 
 def write_table2(table2: pd.DataFrame) -> Path:
@@ -1026,97 +702,7 @@ def write_table2(table2: pd.DataFrame) -> Path:
     )
     path = TABLE_DIR / "table2_primary_associations.tex"
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    table2.to_csv(SOURCE_DIR / "table2_source_data.csv", index=False)
     return path
-
-
-def build_table3_records(
-    charls_registry: pd.DataFrame,
-    charls_anthro: pd.DataFrame,
-    nhanes_registry: pd.DataFrame,
-) -> pd.DataFrame:
-    specifications = [
-        ("CHARLS", charls_registry, "v44_s3_charls_pc_e0_a1", "Primary model", "Multiple imputation", False),
-        ("CHARLS", charls_registry, "v44_s3_charls_pc_e0_a1_complete_case", "Complete case", "Missing data", False),
-        ("CHARLS", charls_registry, "v44_s3_charls_pc_e0_a1_w2_landmark_conditional_survivor", "Wave 2 conditional-survivor", "Early follow-up", False),
-        ("CHARLS", charls_registry, "v44_s3_charls_pc_e0_a1_boundary_excluded", "PEF boundary values excluded", "PEF measurement", False),
-        ("CHARLS", charls_registry, "v44_s3_charls_pc_e0_a1_strict_measurement", "Strict PEF measurement", "PEF measurement", False),
-        ("CHARLS", charls_anthro, "v44_s3_charls_pc_e0_a1_who_component_no_later_aux", "WHO component-only routing", "Anthropometry", False),
-        ("CHARLS", charls_anthro, "v44_s3_charls_pc_e0_a1_pcornet_block_no_later_aux", "PCORnet-style block bounds", "Anthropometry", False),
-        ("NHANES", nhanes_registry, "v43_s3_nhanes_pn_e0_a1", "Primary model", "Multiple imputation", True),
-        ("NHANES", nhanes_registry, "v43_s3_nhanes_pn_e0_a1_complete_case", "Complete case", "Missing data", True),
-        ("NHANES", nhanes_registry, "v43_s3_nhanes_pn_e0_two_year_landmark_a1", "Two-year conditional-survivor", "Early follow-up", True),
-        ("NHANES", nhanes_registry, "v43_s3_nhanes_pn_e0_pef_A_acc3_a1", "Grade A with at least 3 acceptable curves", "Spirometry quality", True),
-        ("NHANES", nhanes_registry, "v43_s3_nhanes_pn_e0_pef_A_plus_C_a1", "Grades A or C", "Spirometry quality", True),
-        ("NHANES", nhanes_registry, "v43_s3_nhanes_pn_e0_pef_ABC_a1", "Grades A, B, or C", "Spirometry quality", True),
-        ("NHANES", nhanes_registry, "v43_s3_nhanes_pn_e0_gt900_influence_exclusion_a1", "Values >900 L/min excluded", "High PEF values", True),
-        ("NHANES", nhanes_registry, "v43_s3_nhanes_pn_e0_leave_cycle_E_a1", "Cycle E excluded", "Survey cycle", True),
-        ("NHANES", nhanes_registry, "v43_s3_nhanes_pn_e0_leave_cycle_F_a1", "Cycle F excluded", "Survey cycle", True),
-        ("NHANES", nhanes_registry, "v43_s3_nhanes_pn_e0_leave_cycle_G_a1", "Cycle G excluded", "Survey cycle", True),
-    ]
-    records = []
-    for cohort, registry, aid, analysis, assumption, nhanes in specifications:
-        row = row_by_id(registry, aid)
-        hr, low, high = hr_fields(row, nhanes=nhanes)
-        records.append(
-            {
-                "cohort": cohort,
-                "assumption": assumption,
-                "analysis": analysis,
-                "n": int(row["n"]),
-                "deaths": int(row["events"]),
-                "result": fmt_hr(hr, low, high),
-                "hr": hr,
-                "ci_low": low,
-                "ci_high": high,
-                "analysis_id": aid,
-                "status": "ESTIMATED",
-            }
-        )
-    records.extend(
-        [
-            {
-                "cohort": "CHARLS",
-                "assumption": "Anthropometric auxiliaries",
-                "analysis": "Later-wave auxiliary variant",
-                "n": np.nan,
-                "deaths": np.nan,
-                "result": "Not stably estimable; no mortality model fitted",
-                "hr": np.nan,
-                "ci_low": np.nan,
-                "ci_high": np.nan,
-                "analysis_id": "who_block_later_aux",
-                "status": "NOT_STABLY_ESTIMABLE",
-            },
-            {
-                "cohort": "NHANES",
-                "assumption": "Older-adult routing boundary",
-                "analysis": "Age 60–79, A1",
-                "n": 3346,
-                "deaths": 701,
-                "result": "Not estimable; no coefficient reported",
-                "hr": np.nan,
-                "ci_low": np.nan,
-                "ci_high": np.nan,
-                "analysis_id": "v43_s3_nhanes_pn_e0_age60_79_a1",
-                "status": "NOT_ESTIMABLE",
-            },
-            {
-                "cohort": "NHANES",
-                "assumption": "Older-adult routing boundary",
-                "analysis": "Age 60–79, A2",
-                "n": 3346,
-                "deaths": 701,
-                "result": "Not attempted after the paired A1 model was not estimable",
-                "hr": np.nan,
-                "ci_low": np.nan,
-                "ci_high": np.nan,
-                "analysis_id": "v43_s3_nhanes_pn_e0_age60_79_a2",
-                "status": "NOT_ATTEMPTED_PANEL_DEPENDENCY",
-            },
-        ]
-    )
-    return pd.DataFrame(records)
 
 
 def write_table3(table3: pd.DataFrame) -> Path:
@@ -1150,18 +736,145 @@ def write_table3(table3: pd.DataFrame) -> Path:
     )
     path = TABLE_DIR / "table3_sensitivity.tex"
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    table3.to_csv(SOURCE_DIR / "table3_source_data.csv", index=False)
     return path
+
+
+def validate_frames(frames: dict[str, pd.DataFrame]) -> None:
+    expected_rows = {
+        "figure1": 23,
+        "figure2": 6,
+        "figure3": 10,
+        "table1": 43,
+        "table2": 12,
+        "table3": 20,
+    }
+    for name, expected in expected_rows.items():
+        observed = len(frames[name])
+        if observed != expected:
+            raise RuntimeError(
+                f"{name} must contain {expected} aggregate rows; found {observed}"
+            )
+
+    for name in ("figure2", "figure3"):
+        primary = (
+            frames[name]["primary"]
+            .astype(str)
+            .str.strip()
+            .str.lower()
+            .map({"true": True, "false": False})
+        )
+        if primary.isna().any():
+            raise RuntimeError(f"{name} contains an invalid primary indicator")
+        frames[name]["primary"] = primary.astype(bool)
+
+    record_types = set(frames["figure1"]["record_type"].dropna())
+    if record_types != {"sequential_flow", "analysis_branch"}:
+        raise RuntimeError("Figure 1 record types are incomplete")
+
+    expected_tiers = {"A0", "A1", "A2"}
+    for cohort in ("CHARLS", "NHANES"):
+        observed_tiers = set(
+            frames["figure2"].loc[
+                frames["figure2"]["cohort"] == cohort, "model_tier"
+            ]
+        )
+        if observed_tiers != expected_tiers:
+            raise RuntimeError(f"Figure 2 tiers are incomplete for {cohort}")
+
+    primary_counts = (
+        frames["figure3"].groupby("cohort")["primary"].sum().astype(int).to_dict()
+    )
+    if primary_counts != {"CHARLS": 1, "NHANES": 1}:
+        raise RuntimeError("Figure 3 must contain one primary row per cohort")
+
+    table1 = frames["table1"]
+    empty_education = (
+        (table1["cohort"] == "CHARLS")
+        & (table1["variable_id"] == "education")
+        & (table1["level_id"] == "none")
+    )
+    if empty_education.any():
+        raise RuntimeError("Table 1 contains an unobserved education category")
+
+    table2 = frames["table2"]
+    combinations = table2[
+        ["cohort", "scale", "model_tier"]
+    ].drop_duplicates()
+    if len(combinations) != 12:
+        raise RuntimeError("Table 2 cohort-scale-tier combinations are not unique")
+
+    table3 = frames["table3"]
+    if int((table3["status"] == "ESTIMATED").sum()) != 17:
+        raise RuntimeError("Table 3 must contain 17 estimated rows")
+    if int((table3["status"] != "ESTIMATED").sum()) != 3:
+        raise RuntimeError("Table 3 must contain three non-estimated rows")
+
+    prohibited = {
+        "participant_id",
+        "person_id",
+        "respondent_id",
+        "household_id",
+        "medical_record_number",
+        "seqn",
+    }
+    for name, frame in frames.items():
+        hits = prohibited.intersection(
+            {str(column).lower() for column in frame.columns}
+        )
+        if hits:
+            raise RuntimeError(
+                f"{name} contains participant identifiers: {sorted(hits)}"
+            )
+
+
+def validate_outputs(outputs: list[Path]) -> None:
+    missing = [str(path) for path in outputs if not path.is_file()]
+    if missing:
+        raise RuntimeError(f"Expected outputs were not created: {missing}")
+
+    for filename, expected in EXPECTED_TABLES.items():
+        path = TABLE_DIR / filename
+        observed = sha256(path)
+        if observed != expected:
+            raise RuntimeError(
+                f"Table hash mismatch for {filename}: "
+                f"expected {expected}, observed {observed}"
+            )
+
+    for filename, expected_size in EXPECTED_TIFFS.items():
+        path = FIG_DIR / filename
+        with Image.open(path) as image:
+            if image.mode != "RGB":
+                raise RuntimeError(f"{filename} must be RGB; found {image.mode}")
+            if image.size != expected_size:
+                raise RuntimeError(
+                    f"{filename} must be {expected_size}; found {image.size}"
+                )
+            compression = str(image.info.get("compression", "")).lower()
+            if compression not in {"tiff_lzw", "lzw"}:
+                raise RuntimeError(
+                    f"{filename} must use LZW compression; "
+                    f"found {compression or 'unknown'}"
+                )
+            dpi = image.info.get("dpi")
+            if (
+                not dpi
+                or len(dpi) != 2
+                or any(abs(float(value) - 600.0) > 1.0 for value in dpi)
+            ):
+                raise RuntimeError(
+                    f"{filename} must have 600-dpi metadata; found {dpi}"
+                )
 
 
 def write_manifest(outputs: list[Path]) -> Path:
     rows = []
-    for name, (path, expected) in SOURCES.items():
+    for name, (path, expected) in INPUTS.items():
         rows.append(
             {
                 "asset_type": "input",
                 "asset_id": name,
-                "relative_path": str(path.relative_to(PROJECT)),
+                "relative_path": str(path.relative_to(ROOT)),
                 "sha256": sha256(path),
                 "expected_sha256": expected,
                 "status": "PASS",
@@ -1172,48 +885,46 @@ def write_manifest(outputs: list[Path]) -> Path:
             {
                 "asset_type": "output",
                 "asset_id": path.stem,
-                "relative_path": str(path.relative_to(PROJECT)),
+                "relative_path": str(path.relative_to(ROOT)),
                 "sha256": sha256(path),
                 "expected_sha256": "",
-                "status": "GENERATED_FROM_VERIFIED_AGGREGATES",
+                "status": "GENERATED",
             }
         )
     manifest = pd.DataFrame(rows)
-    path = OUT / "display_build_manifest.csv"
+    path = OUT / "manifest.csv"
     manifest.to_csv(path, index=False)
     return path
 
 
 def main() -> None:
-    verify_sources()
+    verify_inputs()
     prepare_dirs()
     set_plot_style()
-    charls_registry = pd.read_csv(SOURCES["charls_registry"][0])
-    charls_anthro = pd.read_csv(SOURCES["charls_anthro"][0])
-    nhanes_registry = pd.read_csv(SOURCES["nhanes_registry"][0])
-    charls_flow = pd.read_csv(SOURCES["charls_flow"][0])
-    nhanes_flow = pd.read_csv(SOURCES["nhanes_flow"][0])
-    table1 = pd.read_csv(SOURCES["table1"][0], dtype=str, keep_default_na=False)
+    frames = {
+        "figure1": pd.read_csv(INPUTS["figure1"][0]),
+        "figure2": pd.read_csv(INPUTS["figure2"][0]),
+        "figure3": pd.read_csv(INPUTS["figure3"][0]),
+        "table1": pd.read_csv(
+            INPUTS["table1"][0], dtype=str, keep_default_na=False
+        ),
+        "table2": pd.read_csv(INPUTS["table2"][0]),
+        "table3": pd.read_csv(INPUTS["table3"][0]),
+    }
+    validate_frames(frames)
 
     outputs: list[Path] = []
-    _, fig1 = build_figure1(
-        charls_flow, nhanes_flow, charls_registry, nhanes_registry
-    )
-    outputs.extend(fig1)
-    _, fig2 = build_figure2(charls_registry, nhanes_registry)
-    outputs.extend(fig2)
-    _, fig3 = build_figure3(charls_registry, charls_anthro, nhanes_registry)
-    outputs.extend(fig3)
-    outputs.append(write_table1(table1))
-    table2 = table2_records(charls_registry, nhanes_registry)
-    outputs.append(write_table2(table2))
-    table3 = build_table3_records(charls_registry, charls_anthro, nhanes_registry)
-    outputs.append(write_table3(table3))
-    outputs.extend(sorted(SOURCE_DIR.glob("*.csv")))
+    outputs.extend(build_figure1(frames["figure1"]))
+    outputs.extend(build_figure2(frames["figure2"]))
+    outputs.extend(build_figure3(frames["figure3"]))
+    outputs.append(write_table1(frames["table1"]))
+    outputs.append(write_table2(frames["table2"]))
+    outputs.append(write_table3(frames["table3"]))
+    validate_outputs(outputs)
     manifest = write_manifest(outputs)
     print(
-        "DISPLAY BUILD PASS; verified 6 frozen aggregate inputs; "
-        f"generated {len(outputs)} display/source artifacts and {manifest.relative_to(PROJECT)}"
+        "REPRODUCTION PASS; verified 6 aggregate inputs and generated "
+        f"{len(outputs)} table/figure files plus {manifest.relative_to(ROOT)}"
     )
 
 

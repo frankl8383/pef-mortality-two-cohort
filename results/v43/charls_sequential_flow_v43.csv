@@ -1,8 +1,0 @@
-flow_branch,step_order,step_id,step_label,n,excluded_from_previous,deaths
-primary_P_C_upper_bound,1,source_core,All locked Harmonized core rows,25586,0,2842
-primary_P_C_upper_bound,2,wave1_known_alive,Wave 1 interviewed/known alive,17708,7878,2473
-primary_P_C_upper_bound,3,age_45_plus,Age at least 45 years,16931,777,2381
-primary_P_C_upper_bound,4,positive_biomarker_weight,Positive Wave 1 biomarker survey weight,13432,3499,1912
-primary_P_C_upper_bound,5,known_sex,Known sex,13432,0,1912
-primary_P_C_upper_bound,6,valid_wave1_rowmax_pef,"Valid Wave 1 maximum of trials, 30-890 L/min",12766,666,1735
-primary_P_C_upper_bound,7,subsequent_vital_status_known,At least one explicit W2-W5 vital status,12555,211,1735
