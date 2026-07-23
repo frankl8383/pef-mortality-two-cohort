@@ -54,7 +54,7 @@ SOURCES = {
     ),
     "table1": (
         PROJECT / "results/v44_2/table1_baseline_characteristics_source_v44_2.csv",
-        "dbde0177968130438bc2018346b704e6ad991727ddeb6f935526335340826431",
+        "2172d7cdaf5dfc57191a89a250b4892959ec81f9d81af860640210c157b3f4c4",
     ),
 }
 
@@ -920,8 +920,8 @@ def table1_characteristic_rows(table1: pd.DataFrame) -> list[str]:
 
 
 def write_table1(table1: pd.DataFrame) -> Path:
-    if len(table1) != 44:
-        raise RuntimeError(f"Table 1 aggregate source must contain 44 rows; found {len(table1)}")
+    if len(table1) != 43:
+        raise RuntimeError(f"Table 1 aggregate source must contain 43 rows; found {len(table1)}")
     lines = [
         r"\begin{longtable}{p{0.54\textwidth}p{0.25\textwidth}p{0.12\textwidth}}",
         r"\caption{Baseline characteristics of the CHARLS and NHANES primary mortality populations}\label{tab:baseline}\\",

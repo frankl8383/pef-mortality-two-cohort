@@ -1,11 +1,11 @@
 cff-version: 1.2.0
 message: "If you use this code, please cite the associated article and this release."
 title: "Peak expiratory flow and all-cause mortality in CHARLS and NHANES: reproducibility code"
-version: "2.0.0"
+version: "2.0.1"
 date-released: "2026-07-23"
 type: software
 repository-code: "https://github.com/frankl8383/pef-mortality-two-cohort"
-url: "https://github.com/frankl8383/pef-mortality-two-cohort/releases/tag/v2.0.0"
+url: "https://github.com/frankl8383/pef-mortality-two-cohort/releases/tag/v2.0.1"
 license: MIT
 authors:
   - family-names: Liu
