@@ -1,26 +1,13 @@
-# Controlled-access raw / row-level data — NEVER commit (data-use agreements)
+.DS_Store
+.venv/
+__pycache__/
+*.py[cod]
+rebuild/
+derived_sensitive/
+participant_data/
 *.rds
 *.RData
-*.dta
+*.Rhistory
 *.sav
+*.dta
 *.sas7bdat
-*.xpt
-secure_data/
-derived_sensitive/
-raw_data/
-restricted_data/
-
-# Credentials / config
-.env
-*.key
-*.pem
-config.y*ml
-secrets.y*ml
-
-# Caches / OS
-__pycache__/
-*.pyc
-.Rhistory
-.RData
-.DS_Store
-.ipynb_checkpoints/
