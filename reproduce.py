@@ -49,7 +49,7 @@ INPUTS: dict[str, tuple[str, str, int, tuple[str, ...]]] = {
     ),
     "figure2": (
         "figure2_source_data.csv",
-        "29d9ba0f3fd526f05c4588067d474a16f7492d4553e56b322a73cbab0c2a037b",
+        "5706eddd8a2bc1a9766e3b46c35e591dc65578dfd57de33b53aab8f840c5d844",
         6,
         (
             "cohort",
@@ -67,7 +67,7 @@ INPUTS: dict[str, tuple[str, str, int, tuple[str, ...]]] = {
     ),
     "figure3": (
         "figure3_source_data.csv",
-        "a7c0b954f01f6492f9ee5db74e1485f7a82afde47e6d287b45d3c9da0f0a2501",
+        "05aa457915e223a80abe48ec209c574766ea4157fa160ef3426fa452b58723a3",
         8,
         (
             "panel",
@@ -90,7 +90,7 @@ INPUTS: dict[str, tuple[str, str, int, tuple[str, ...]]] = {
     ),
     "figure4": (
         "figure4_source_data.csv",
-        "c33a131b80119b569f882ae487e4c6b0929041ae485629d1117cc61521b58ddc",
+        "4843938457afb2a0a42e43723e441354948e9f584e5a90a6518292851c2ce976",
         7,
         (
             "panel",
@@ -112,7 +112,7 @@ INPUTS: dict[str, tuple[str, str, int, tuple[str, ...]]] = {
     ),
     "table1": (
         "table1_source_data.csv",
-        "10c373a06c374fca42d047a49f49510e6ca553f0ddabc21d5aa201aa820fe389",
+        "5c5e919308eb8bbc83fd7eb0e5cf674ec40b3a5cad5a982d5a6188d50c7b4460",
         43,
         (
             "cohort",
@@ -153,7 +153,7 @@ INPUTS: dict[str, tuple[str, str, int, tuple[str, ...]]] = {
     ),
     "table2": (
         "table2_source_data.csv",
-        "710ca9ad7c986b6f1fded4dcc34d5e042a301d5b9b7b8cc068ea5d25f7dfd0b4",
+        "dc867169199e56676d675907eab1afb78a7ee13ab807bb12038610f042fcfae5",
         12,
         (
             "cohort",
@@ -169,7 +169,7 @@ INPUTS: dict[str, tuple[str, str, int, tuple[str, ...]]] = {
     ),
     "table3": (
         "table3_source_data.csv",
-        "61e8880616232d9fb630f6705c888449744417acbb7a2e54ef35b9adec78a588",
+        "4ef368e080e091826f3252c7b1a15f2c03d7a81c91e9ce39d849d0a96188f40d",
         8,
         (
             "section",
@@ -393,13 +393,13 @@ def validate_numeric_contracts(frames: dict[str, pd.DataFrame]) -> None:
 
     figure3 = frames["figure3"]
     expected_figure3_ids = {
-        "v45_g1",
-        "v45_g2",
-        "v45_g3",
-        "v45_g4",
-        "v45_g6a",
-        "v45_g6b",
-        "v45_gli_ref_2022",
+        "pef_separate_a1",
+        "fev1_separate_a1",
+        "fvc_separate_a1",
+        "ratio_separate_a1",
+        "pef_conditional_fev1_ratio_a1",
+        "pef_conditional_fvc_ratio_a1",
+        "pef_reference_range_a1",
     }
     if set(figure3["analysis_id"]) != expected_figure3_ids:
         raise RuntimeError("Figure 3 analysis set is incomplete")
@@ -408,11 +408,11 @@ def validate_numeric_contracts(frames: dict[str, pd.DataFrame]) -> None:
     if set(figure3["panel"]) != {"A", "B"}:
         raise RuntimeError("Figure 3 panel labels are invalid")
     assert_close(
-        one_row(figure3, analysis_id="v45_g6a")["effect"],
+        one_row(figure3, analysis_id="pef_conditional_fev1_ratio_a1")["effect"],
         1.28954518174239,
-        "G6a conditional PEF HR",
+        "conditional PEF HR",
     )
-    ref_row = one_row(figure3, analysis_id="v45_gli_ref_2022")
+    ref_row = one_row(figure3, analysis_id="pef_reference_range_a1")
     assert_close(ref_row["effect"], 1.25568516880495, "GLI reference-range PEF HR")
     if str(ref_row["n"]) != "5304-5309" or str(ref_row["deaths"]) != "582-584":
         raise RuntimeError("GLI reference-range denominator must remain a range")
@@ -430,9 +430,9 @@ def validate_numeric_contracts(frames: dict[str, pd.DataFrame]) -> None:
     if observed_ipw != expected_ipw:
         raise RuntimeError("Figure 4 NHANES observation-IPW variants are incomplete")
     charls_trial_ids = {
-        "v45_c_trial_max_a1": 1.31945523717765,
-        "v45_c_trial_mean_a1": 1.35827893527892,
-        "v45_c_trial_median_a1": 1.34753895505856,
+        "charls_pef_max_a1": 1.31945523717765,
+        "charls_pef_mean_a1": 1.35827893527892,
+        "charls_pef_median_a1": 1.34753895505856,
     }
     for analysis_id, expected in charls_trial_ids.items():
         row = one_row(figure4, analysis_id=analysis_id)
@@ -440,7 +440,7 @@ def validate_numeric_contracts(frames: dict[str, pd.DataFrame]) -> None:
         if int(row["model_n"]) != 12512 or int(row["model_deaths"]) != 1722:
             raise RuntimeError(f"{analysis_id} denominator mismatch")
     original_ipw = one_row(
-        figure4, analysis_id="v45_ipw_a1", variant="primary_original"
+        figure4, analysis_id="nhanes_pef_observation_ipw_a1", variant="primary_original"
     )
     assert_close(
         original_ipw["effect"], 1.45529466911348, "Observation-IPW anchor HR"
@@ -496,11 +496,11 @@ def validate_numeric_contracts(frames: dict[str, pd.DataFrame]) -> None:
 
     table3 = frames["table3"]
     expected_table3_ids = expected_figure3_ids | {
-        "v45_paired_g6a_minus_g1"
+        "pef_conditional_vs_separate_contrast"
     }
     if set(table3["analysis_id"]) != expected_table3_ids:
         raise RuntimeError("Table 3 analysis set is incomplete")
-    paired = one_row(table3, analysis_id="v45_paired_g6a_minus_g1")
+    paired = one_row(table3, analysis_id="pef_conditional_vs_separate_contrast")
     if (
         paired["effect_measure"] != "Ratio of HRs"
         or str(paired["scale"]) != "Ratio of HRs"
@@ -1134,21 +1134,21 @@ def write_table2(table2: pd.DataFrame) -> Path:
 
 def write_table3(table3: pd.DataFrame) -> Path:
     focal_labels = {
-        "E0": "Lower PEF",
-        "L_FEV1": "Lower FEV1 z score",
-        "L_FVC": "Lower FVC z score",
-        "L_RATIO": "Lower FEV1/FVC z score",
-        "G6a_minus_G1": "Conditional/separate PEF",
+        "lower_pef_1sd": "Lower PEF",
+        "lower_fev1_z": "Lower FEV1 z score",
+        "lower_fvc_z": "Lower FVC z score",
+        "lower_fev1_fvc_z": "Lower FEV1/FVC z score",
+        "conditional_minus_separate_pef": "Conditional/separate PEF",
     }
     model_labels = {
-        "v45_g1": "Separate PEF model",
-        "v45_g2": "Separate FEV1 model",
-        "v45_g3": "Separate FVC model",
-        "v45_g4": "Separate FEV1/FVC model",
-        "v45_g6a": "PEF + FEV1 + FEV1/FVC z scores",
-        "v45_g6b": "PEF + FVC + FEV1/FVC z scores",
-        "v45_gli_ref_2022": "PEF: all three GLI indices in range",
-        "v45_paired_g6a_minus_g1": "Conditional versus separate PEF model",
+        "pef_separate_a1": "Separate PEF model",
+        "fev1_separate_a1": "Separate FEV1 model",
+        "fvc_separate_a1": "Separate FVC model",
+        "ratio_separate_a1": "Separate FEV1/FVC model",
+        "pef_conditional_fev1_ratio_a1": "PEF + FEV1 + FEV1/FVC z scores",
+        "pef_conditional_fvc_ratio_a1": "PEF + FVC + FEV1/FVC z scores",
+        "pef_reference_range_a1": "PEF: all three GLI indices in range",
+        "pef_conditional_vs_separate_contrast": "Conditional versus separate PEF model",
     }
     lines = [
         r"\begin{longtable}{p{0.25\textwidth}p{0.25\textwidth}p{0.12\textwidth}rrp{0.15\textwidth}ll}",
