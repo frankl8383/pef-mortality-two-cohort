@@ -1,0 +1,25 @@
+.DS_Store
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+output/
+
+# Keep credentials, local configuration, and non-public research data out.
+.env
+.env.*
+*.pem
+*.key
+data/raw/
+data/private/
+*.dta
+*.sav
+*.xpt
+*.rds
+*.RData
+*.parquet
+*.feather
+*.sqlite
+*.sqlite3
+*.duckdb
