@@ -577,6 +577,16 @@ def fmt_p(value: object) -> str:
     return "<0.001" if numeric < 0.001 else f"{numeric:.3f}"
 
 
+def count_display(value: object) -> str:
+    text = str(value).strip()
+    if not text or text.lower() == "nan":
+        return ""
+    try:
+        return "--".join(f"{int(float(part)):,}" for part in text.split("-"))
+    except ValueError:
+        return text
+
+
 def tex_escape(value: object) -> str:
     text = "" if value is None else str(value)
     for old, new in (
@@ -1169,7 +1179,8 @@ def write_table3(table3: pd.DataFrame) -> Path:
             lines.append(
                 f"{tex_escape(model_labels[str(row.analysis_id)])} & "
                 f"{tex_escape(focal_labels[str(row.term)])} & "
-                f"{tex_escape(row.scale)} & {row.n} & {row.deaths} & "
+                f"{tex_escape(row.scale)} & {count_display(row.n)} & "
+                f"{count_display(row.deaths)} & "
                 f"{estimate} & {fmt_p(row.p_value)} & "
                 f"{fmt_p(row.holm_p_value)} \\\\"
             )
