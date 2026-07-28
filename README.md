@@ -2,7 +2,8 @@
 
 This is the minimal public display-reproduction package for the accompanying
 CHARLS and NHANES manuscript. It contains one Python entry point and seven
-aggregate, disclosure-safe CSV files.
+aggregate, disclosure-safe CSV files for the main displays, plus one aggregate
+CSV for Supplementary Figure S1.
 
 ## Run
 
@@ -18,7 +19,8 @@ python reproduce.py
 A successful run prints `REPRODUCTION PASS` and creates:
 
 - three LaTeX tables in `output/tables/`;
-- four figures in TIFF, PNG, PDF, and SVG formats in `output/figures/`; and
+- four main figures and Supplementary Figure S1 in TIFF, PNG, PDF, and SVG
+  formats in `output/figures/`; and
 - `output/manifest.csv`, containing SHA-256 checksums for all inputs and
   generated files.
 
@@ -30,6 +32,9 @@ The script verifies input hashes, schemas, row counts, cross-file consistency,
 and prespecified numerical and interpretation anchors before rendering the
 manuscript displays. It does **not** reconstruct either cohort, perform
 multiple imputation, or refit survival models.
+
+Supplementary Figure S1 is rebuilt from the released pooled spline curve,
+imputation-level condition indices, and aggregate residual-support summaries.
 
 No participant-level data, identifiers, completed imputations, credentials,
 or local file paths are included. Access to CHARLS microdata remains governed

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Reproduce manuscript Tables 1-3 and Figures 1-4 from aggregate CSVs.
+"""Reproduce manuscript Tables 1-3, Figures 1-4, and Supplementary Figure S1.
 
 This script is intentionally limited to the disclosure-safe display layer. It
 does not open participant-level data, run imputation, or refit cohort models.
-Before rendering, it verifies the seven input files and their main numerical
+Before rendering, it verifies the eight input files and their main numerical
 and interpretation contracts.
 """
 
@@ -190,6 +190,25 @@ INPUTS: dict[str, tuple[str, str, int, tuple[str, ...]]] = {
             "holm_p_value",
         ),
     ),
+    "supplementary_figure_s1": (
+        "supplementary_figure_s1_source_data.csv",
+        "851dc6f50025fc1ecaa7562405d21d093bc86e31191dc765c3f2e1a6622ee112",
+        216,
+        (
+            "record_type",
+            "panel",
+            "block_id",
+            "imputation",
+            "x",
+            "estimate",
+            "ci_low",
+            "ci_high",
+            "metric",
+            "value",
+            "n",
+            "deaths",
+        ),
+    ),
 }
 
 CHARLS = "#2F6B9A"
@@ -201,6 +220,11 @@ GRID = "#D7DCE2"
 TEXT = "#111111"
 LIGHT_BLUE = "#EEF4F8"
 LIGHT_ORANGE = "#FAF1E9"
+S1_NAVY = "#315A7D"
+S1_LIGHT_BLUE = "#C7D8E6"
+S1_SLATE = "#607080"
+S1_LIGHT_GREY = "#D9DEE3"
+S1_ACCENT = "#9C6B30"
 
 
 def sha256(path: Path) -> str:
@@ -527,6 +551,108 @@ def validate_numeric_contracts(frames: dict[str, pd.DataFrame]) -> None:
             raise RuntimeError(
                 f"Figure 3 and Table 3 disagree for {analysis_id}"
             )
+
+    s1 = frames["supplementary_figure_s1"]
+    expected_record_counts = {
+        "spline_curve": 101,
+        "condition_index": 100,
+        "residual_summary": 10,
+        "plot_metadata": 5,
+    }
+    if s1["record_type"].value_counts().to_dict() != expected_record_counts:
+        raise RuntimeError("Supplementary Figure S1 record counts changed")
+
+    curve = s1.loc[s1["record_type"] == "spline_curve"].copy()
+    curve_numeric = curve[
+        ["x", "estimate", "ci_low", "ci_high", "n", "deaths"]
+    ].apply(pd.to_numeric, errors="raise")
+    if not np.isfinite(curve_numeric.to_numpy()).all():
+        raise RuntimeError("Supplementary Figure S1 curve is non-finite")
+    if not (
+        (curve_numeric["ci_low"] <= curve_numeric["estimate"])
+        & (curve_numeric["estimate"] <= curve_numeric["ci_high"])
+    ).all():
+        raise RuntimeError("Supplementary Figure S1 curve CI is unordered")
+    if (
+        set(curve_numeric["n"].astype(int)) != {6540}
+        or set(curve_numeric["deaths"].astype(int)) != {885}
+    ):
+        raise RuntimeError("Supplementary Figure S1 denominator changed")
+    if not curve_numeric["x"].is_monotonic_increasing:
+        raise RuntimeError("Supplementary Figure S1 curve grid is unordered")
+
+    condition = s1.loc[s1["record_type"] == "condition_index"].copy()
+    expected_blocks = {
+        "prespecified_conditional",
+        "four_exposure_sensitivity",
+    }
+    if set(condition["block_id"]) != expected_blocks:
+        raise RuntimeError("Supplementary Figure S1 condition blocks changed")
+    for block in expected_blocks:
+        part = condition.loc[condition["block_id"] == block]
+        imputations = set(pd.to_numeric(part["imputation"], errors="raise"))
+        if imputations != set(range(1, 51)):
+            raise RuntimeError(
+                f"Supplementary Figure S1 {block} imputations are incomplete"
+            )
+        values = pd.to_numeric(part["value"], errors="raise")
+        if not np.isfinite(values).all() or (values <= 0).any():
+            raise RuntimeError(
+                f"Supplementary Figure S1 {block} condition indices are invalid"
+            )
+
+    residual = s1.loc[s1["record_type"] == "residual_summary"].copy()
+    residual_values = residual.set_index("metric")["value"].astype(float)
+    required_residual_metrics = {
+        "conditional_residual_sd",
+        "conditional_residual_q05",
+        "conditional_residual_q25",
+        "conditional_residual_q50",
+        "conditional_residual_q75",
+        "conditional_residual_q95",
+        "retained_a1_residual_variance_fraction",
+    }
+    if not required_residual_metrics.issubset(residual_values.index):
+        raise RuntimeError(
+            "Supplementary Figure S1 residual summaries are incomplete"
+        )
+    quantiles = residual_values[
+        [
+            "conditional_residual_q05",
+            "conditional_residual_q25",
+            "conditional_residual_q50",
+            "conditional_residual_q75",
+            "conditional_residual_q95",
+        ]
+    ].to_numpy()
+    if not np.all(np.diff(quantiles) > 0):
+        raise RuntimeError(
+            "Supplementary Figure S1 residual quantiles are unordered"
+        )
+    assert_close(
+        residual_values["conditional_residual_sd"],
+        0.584596437139976,
+        "Supplementary Figure S1 residual SD",
+    )
+    assert_close(
+        residual_values["retained_a1_residual_variance_fraction"],
+        0.501945634024262,
+        "Supplementary Figure S1 retained variance",
+    )
+
+    metadata = s1.loc[s1["record_type"] == "plot_metadata"].copy()
+    nonlinear = metadata.loc[
+        metadata["metric"] == "conditional_nonlinearity_p", "value"
+    ]
+    if len(nonlinear) != 1:
+        raise RuntimeError(
+            "Supplementary Figure S1 nonlinear-test metadata changed"
+        )
+    assert_close(
+        nonlinear.iloc[0],
+        0.572877497916911,
+        "Supplementary Figure S1 nonlinear P",
+    )
 
 
 def prepare_output() -> None:
@@ -1016,6 +1142,225 @@ def build_figure4(source: pd.DataFrame) -> list[Path]:
     return save_figure(fig, "figure4_selection_measurement")
 
 
+def build_supplementary_figure_s1(source: pd.DataFrame) -> list[Path]:
+    mpl.rcParams.update(
+        {
+            "font.family": "sans-serif",
+            "font.sans-serif": [
+                "Arial",
+                "Helvetica",
+                "DejaVu Sans",
+                "sans-serif",
+            ],
+            "font.size": 7,
+            "axes.labelsize": 7,
+            "axes.titlesize": 7,
+            "xtick.labelsize": 6.5,
+            "ytick.labelsize": 6.5,
+            "axes.linewidth": 0.7,
+            "axes.spines.top": False,
+            "axes.spines.right": False,
+            "legend.frameon": False,
+            "svg.fonttype": "none",
+            "pdf.fonttype": 42,
+        }
+    )
+    curve = source.loc[source["record_type"] == "spline_curve"].copy()
+    curve[["x", "estimate", "ci_low", "ci_high"]] = curve[
+        ["x", "estimate", "ci_low", "ci_high"]
+    ].astype(float)
+    curve = curve.sort_values("x")
+    condition = source.loc[source["record_type"] == "condition_index"].copy()
+    condition[["imputation", "value"]] = condition[
+        ["imputation", "value"]
+    ].astype(float)
+    residual = (
+        source.loc[source["record_type"] == "residual_summary"]
+        .set_index("metric")["value"]
+        .astype(float)
+    )
+    metadata = source.loc[source["record_type"] == "plot_metadata"].copy()
+    metadata["value"] = metadata["value"].astype(float)
+
+    def metadata_values(metric: str) -> np.ndarray:
+        values = metadata.loc[metadata["metric"] == metric, "value"].to_numpy()
+        if not len(values):
+            raise RuntimeError(f"Missing Supplementary Figure S1 metadata: {metric}")
+        return values
+
+    fig = plt.figure(figsize=(7.007874, 3.070866), constrained_layout=False)
+    grid = fig.add_gridspec(
+        1,
+        3,
+        width_ratios=[1.9, 1.0, 1.0],
+        left=0.075,
+        right=0.985,
+        bottom=0.22,
+        top=0.90,
+        wspace=0.48,
+    )
+
+    def panel_label(ax: plt.Axes, label: str) -> None:
+        ax.text(
+            -0.16,
+            1.06,
+            label,
+            transform=ax.transAxes,
+            fontsize=8,
+            fontweight="bold",
+            va="top",
+            ha="left",
+            color=TEXT,
+        )
+
+    ax_a = fig.add_subplot(grid[0, 0])
+    x = curve["x"].to_numpy()
+    estimate = curve["estimate"].to_numpy()
+    low = curve["ci_low"].to_numpy()
+    high = curve["ci_high"].to_numpy()
+    ax_a.fill_between(
+        x,
+        low,
+        high,
+        color=S1_LIGHT_BLUE,
+        alpha=0.72,
+        linewidth=0,
+    )
+    ax_a.plot(x, estimate, color=S1_NAVY, linewidth=1.6)
+    ax_a.axhline(
+        1.0,
+        color=S1_SLATE,
+        linewidth=0.8,
+        linestyle=(0, (3, 2)),
+    )
+    for knot in metadata_values("internal_knot"):
+        ax_a.axvline(
+            knot,
+            color=S1_LIGHT_GREY,
+            linewidth=0.7,
+            linestyle=":",
+        )
+    ax_a.set_xlabel("Lower-than-expected PEF (sex-specific SD)")
+    ax_a.set_ylabel("Hazard ratio (95% CI)")
+    ax_a.set_xlim(float(x.min()), float(x.max()))
+    ax_a.set_ylim(0.25, max(2.15, float(high.max()) * 1.03))
+    nonlinear_p = float(metadata_values("conditional_nonlinearity_p")[0])
+    ax_a.text(
+        0.03,
+        0.96,
+        f"$P_{{nonlinearity}}$ = {nonlinear_p:.3f}",
+        transform=ax_a.transAxes,
+        va="top",
+        ha="left",
+        color=TEXT,
+    )
+    panel_label(ax_a, "a")
+
+    ax_b = fig.add_subplot(grid[0, 1])
+    blocks = [
+        (
+            "prespecified_conditional",
+            "PEF + FEV1\n+ FEV1/FVC",
+            S1_NAVY,
+        ),
+        (
+            "four_exposure_sensitivity",
+            "PEF + all three\nGLI indices",
+            S1_ACCENT,
+        ),
+    ]
+    for position, (block, label, color) in enumerate(blocks, start=1):
+        values = (
+            condition.loc[condition["block_id"] == block]
+            .sort_values("imputation")["value"]
+            .to_numpy()
+        )
+        jitter = np.linspace(-0.07, 0.07, num=len(values))
+        ax_b.scatter(
+            np.full(len(values), position) + jitter,
+            values,
+            s=7,
+            facecolor=color,
+            edgecolor="white",
+            linewidth=0.25,
+            alpha=0.72,
+        )
+        median = float(np.median(values))
+        ax_b.plot(
+            [position - 0.18, position + 0.18],
+            [median, median],
+            color=TEXT,
+            linewidth=1.5,
+        )
+    caution = float(metadata_values("caution_threshold")[0])
+    ax_b.axhline(
+        caution,
+        color=S1_SLATE,
+        linewidth=0.8,
+        linestyle=(0, (3, 2)),
+    )
+    ax_b.text(
+        2.38,
+        caution,
+        "caution",
+        fontsize=6,
+        color=S1_SLATE,
+        va="center",
+        ha="right",
+    )
+    ax_b.set_xlim(0.5, 2.5)
+    ax_b.set_ylim(0, 32)
+    ax_b.set_xticks([1, 2], [blocks[0][1], blocks[1][1]])
+    ax_b.set_ylabel("Residual condition index")
+    panel_label(ax_b, "b")
+
+    ax_c = fig.add_subplot(grid[0, 2])
+    q05, q25, q50, q75, q95 = [
+        float(residual[metric])
+        for metric in (
+            "conditional_residual_q05",
+            "conditional_residual_q25",
+            "conditional_residual_q50",
+            "conditional_residual_q75",
+            "conditional_residual_q95",
+        )
+    ]
+    ax_c.hlines(1, q05, q95, color=S1_SLATE, linewidth=1.0)
+    ax_c.add_patch(
+        mpl.patches.Rectangle(
+            (q25, 0.82),
+            q75 - q25,
+            0.36,
+            facecolor=S1_LIGHT_BLUE,
+            edgecolor=S1_NAVY,
+            linewidth=0.9,
+        )
+    )
+    ax_c.vlines([q05, q95], 0.91, 1.09, color=S1_SLATE, linewidth=0.8)
+    ax_c.vlines(q50, 0.82, 1.18, color=S1_NAVY, linewidth=1.4)
+    ax_c.axvline(0, color=S1_LIGHT_GREY, linewidth=0.8, linestyle=":")
+    ax_c.text(
+        0.04,
+        0.92,
+        f"Residual SD = {float(residual['conditional_residual_sd']):.3f}\n"
+        "A1-residual variance retained = "
+        f"{float(residual['retained_a1_residual_variance_fraction']) * 100:.1f}%",
+        transform=ax_c.transAxes,
+        va="top",
+        ha="left",
+        color=TEXT,
+        linespacing=1.35,
+    )
+    ax_c.set_xlim(-1.15, 1.15)
+    ax_c.set_ylim(0.55, 1.65)
+    ax_c.set_yticks([])
+    ax_c.set_xlabel("Conditional residual PEF (SD units)")
+    ax_c.spines["left"].set_visible(False)
+    panel_label(ax_c, "c")
+
+    return save_figure(fig, "supplementary_figure_s1_spline_diagnostics")
+
+
 def table1_rows(table1: pd.DataFrame) -> list[str]:
     lines: list[str] = []
     for cohort, panel in (("CHARLS", "A"), ("NHANES", "B")):
@@ -1208,6 +1553,7 @@ def validate_outputs(outputs: list[Path]) -> None:
                 "figure2_adjustment_ladder",
                 "figure3_gli_comparison",
                 "figure4_selection_measurement",
+                "supplementary_figure_s1_spline_diagnostics",
             )
             for suffix in (".tiff", ".png", ".pdf", ".svg")
         },
@@ -1225,7 +1571,12 @@ def validate_outputs(outputs: list[Path]) -> None:
         with Image.open(path) as image:
             if image.mode != "RGB":
                 raise RuntimeError(f"{path.name} must be RGB; found {image.mode}")
-            if min(image.size) < 2400:
+            minimum_dimension = (
+                1500
+                if path.name.startswith("supplementary_figure_s1")
+                else 2400
+            )
+            if min(image.size) < minimum_dimension:
                 raise RuntimeError(
                     f"{path.name} is unexpectedly small: {image.size}"
                 )
@@ -1311,13 +1662,16 @@ def main() -> None:
     outputs.extend(build_figure2(frames["figure2"]))
     outputs.extend(build_figure3(frames["figure3"]))
     outputs.extend(build_figure4(frames["figure4"]))
+    outputs.extend(
+        build_supplementary_figure_s1(frames["supplementary_figure_s1"])
+    )
     outputs.append(write_table1(frames["table1"]))
     outputs.append(write_table2(frames["table2"]))
     outputs.append(write_table3(frames["table3"]))
     validate_outputs(outputs)
     manifest = write_manifest(outputs)
     print(
-        "REPRODUCTION PASS: verified 7 aggregate inputs, generated and "
+        "REPRODUCTION PASS: verified 8 aggregate inputs, generated and "
         f"checked {len(outputs)} display files, and wrote "
         f"{manifest.relative_to(ROOT)}"
     )
