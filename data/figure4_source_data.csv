@@ -1,8 +1,0 @@
-panel,cohort,analysis_id,term,variant,label,scale,model_n,model_deaths,weighting_target_n,weighting_target_deaths,effect,effect_ci_low,effect_ci_high,p_value
-A,NHANES,nhanes_pef_observation_ipw_a1,lower_pef_1sd,primary_original,Original respondent weights,1 original sex-specific PEF SD,6719,925,7926,1228,1.45529466911348,1.31311974123321,1.61286325035454,2.4885699583186202e-09
-A,NHANES,nhanes_pef_observation_ipw_a1,lower_pef_1sd,primary_uncapped,"Observation-IPW, uncapped",1 original sex-specific PEF SD,6719,925,7926,1228,1.447242080461,1.31313741852186,1.59504223237716,8.68923158355804e-10
-A,NHANES,nhanes_pef_observation_ipw_a1,lower_pef_1sd,primary_cap_p99,"Observation-IPW, p99 cap",1 original sex-specific PEF SD,6719,925,7926,1228,1.44752754115968,1.31358821500571,1.59512391971839,8.22123360336894e-10
-A,NHANES,nhanes_pef_observation_ipw_a1,lower_pef_1sd,primary_cap_p975,"Observation-IPW, p97.5 cap",1 original sex-specific PEF SD,6719,925,7926,1228,1.44741281035636,1.31314437801239,1.59541013057129,8.87293923676009e-10
-B,CHARLS,charls_pef_max_a1,lower_pef_100_max_trial,original,Maximum,100 L/min lower PEF,12512,1722,,,1.31945523717765,1.23233335489478,1.41273634767775,1.38647742122945e-14
-B,CHARLS,charls_pef_mean_a1,lower_pef_100_mean_trial,original,Mean,100 L/min lower PEF,12512,1722,,,1.35827893527892,1.256447649791,1.46836333875854,8.093487179992941e-14
-B,CHARLS,charls_pef_median_a1,lower_pef_100_median_trial,original,Median,100 L/min lower PEF,12512,1722,,,1.34753895505856,1.25197888163364,1.45039286368066,1.4445896461847e-14

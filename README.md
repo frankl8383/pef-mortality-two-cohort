@@ -1,49 +1,20 @@
-# PEF mortality study: display reproduction
+# PEF and mortality in CHARLS and NHANES
 
-This is the minimal public display-reproduction package for the accompanying
-CHARLS and NHANES manuscript. It contains one Python entry point and seven
-aggregate, disclosure-safe CSV files for the main displays, plus one aggregate
-CSV for Supplementary Figure S1.
-
-## Run
-
-Python 3.11 or newer is required by the pinned environment.
+This repository contains the analytic code for the accompanying manuscript.
+The complete versioned archive is `analysis_code_v45_8.zip`; its checksum is
+recorded in `analysis_code_v45_8.sha256`.
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install -r requirements.txt
-python reproduce.py
+shasum -a 256 -c analysis_code_v45_8.sha256
+unzip analysis_code_v45_8.zip
 ```
 
-A successful run prints `REPRODUCTION PASS` and creates:
+The archive includes the cohort-construction, multiple-imputation,
+survey-weighted, survival-model, and validation scripts, together with their
+machine-readable specifications and aggregate validation targets. Run
+instructions and the pinned R environment are inside the archive.
 
-- three LaTeX tables in `output/tables/`;
-- four main figures and Supplementary Figure S1 in TIFF, PNG, PDF, and SVG
-  formats in `output/figures/`; and
-- `output/manifest.csv`, containing SHA-256 checksums for all inputs and
-  generated files.
-
-The TIFF files are RGB, LZW-compressed, and tagged at 600 dpi.
-
-## Scope
-
-The script verifies input hashes, schemas, row counts, cross-file consistency,
-and prespecified numerical and interpretation anchors before rendering the
-manuscript displays. It does **not** reconstruct either cohort, perform
-multiple imputation, or refit survival models.
-
-Supplementary Figure S1 is rebuilt from the released pooled spline curve,
-imputation-level condition indices, and aggregate residual-support summaries.
-
-No participant-level data, identifiers, completed imputations, credentials,
-or local file paths are included. Access to CHARLS microdata remains governed
-by [CHARLS](https://charls.pku.edu.cn/). NHANES public-use files are available
-from [NCHS](https://wwwn.cdc.gov/nchs/nhanes/).
-
-The two cohorts were modeled separately. PEF and GLI z-score effects use
-different scales and should not be ranked from their hazard-ratio magnitudes.
-The paired coefficient result is a ratio of hazard ratios, not an exposure
-hazard ratio. The GLI reference-range analysis should not be described as a
-normal- or healthy-lung subgroup, and observation-IPW analyses address only
-selection related to measured covariates.
+Participant-level data, completed imputations, fitted objects, credentials,
+and author-specific paths are not included. CHARLS data must be obtained under
+the [CHARLS data-use terms](https://charls.pku.edu.cn/); NHANES public-use
+files are available from [NCHS](https://www.cdc.gov/nchs/nhanes/).
