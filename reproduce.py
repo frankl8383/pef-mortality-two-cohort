@@ -169,8 +169,8 @@ INPUTS: dict[str, tuple[str, str, int, tuple[str, ...]]] = {
     ),
     "table3": (
         "table3_source_data.csv",
-        "4ef368e080e091826f3252c7b1a15f2c03d7a81c91e9ce39d849d0a96188f40d",
-        8,
+        "469e63e4ae23865e7e08b913d279b5e440c531434f63ece5216d5d49549a3a6c",
+        12,
         (
             "section",
             "analysis_id",
@@ -520,7 +520,11 @@ def validate_numeric_contracts(frames: dict[str, pd.DataFrame]) -> None:
 
     table3 = frames["table3"]
     expected_table3_ids = expected_figure3_ids | {
-        "pef_conditional_vs_separate_contrast"
+        "pef_conditional_vs_separate_contrast",
+        "pef_separate_a2",
+        "pef_conditional_fev1_ratio_a2",
+        "pef_conditional_vs_separate_a2",
+        "pef_conditional_a2_vs_a1",
     }
     if set(table3["analysis_id"]) != expected_table3_ids:
         raise RuntimeError("Table 3 analysis set is incomplete")
@@ -539,6 +543,38 @@ def validate_numeric_contracts(frames: dict[str, pd.DataFrame]) -> None:
         raise RuntimeError("Paired ratio-of-HRs CI must include no change")
     if float(paired["p_value"]) <= 0.05:
         raise RuntimeError("Paired coefficient contrast must not be labeled significant")
+    a2_separate = one_row(table3, analysis_id="pef_separate_a2")
+    a2_conditional = one_row(
+        table3, analysis_id="pef_conditional_fev1_ratio_a2"
+    )
+    a2_within = one_row(
+        table3, analysis_id="pef_conditional_vs_separate_a2"
+    )
+    a2_vs_a1 = one_row(table3, analysis_id="pef_conditional_a2_vs_a1")
+    assert_close(a2_separate["effect"], 1.38028003644767, "A2 separate PEF HR")
+    assert_close(
+        a2_conditional["effect"],
+        1.25246513338211,
+        "A2 conditional PEF HR",
+    )
+    assert_close(
+        a2_within["effect"],
+        0.907399296019302,
+        "A2 conditional/separate ratio of HRs",
+    )
+    assert_close(
+        a2_vs_a1["effect"],
+        0.971245638473727,
+        "A2/A1 conditional ratio of HRs",
+    )
+    if not (
+        float(a2_within["effect_ci_low"])
+        < 1.0
+        < float(a2_within["effect_ci_high"])
+    ):
+        raise RuntimeError("A2 conditional/separate CI must include no change")
+    if float(a2_vs_a1["effect_ci_high"]) >= 1.0:
+        raise RuntimeError("A2/A1 conditional CI no longer lies below one")
     for analysis_id in expected_figure3_ids:
         table_row = one_row(table3, analysis_id=analysis_id)
         figure_rows = figure3.loc[figure3["analysis_id"] == analysis_id]
@@ -1484,6 +1520,7 @@ def write_table3(table3: pd.DataFrame) -> Path:
         "lower_fvc_z": "Lower FVC z score",
         "lower_fev1_fvc_z": "Lower FEV1/FVC z score",
         "conditional_minus_separate_pef": "Conditional/separate PEF",
+        "conditional_a2_minus_a1_pef": "A2/A1 conditional PEF",
     }
     model_labels = {
         "pef_separate_a1": "Separate PEF model",
@@ -1492,6 +1529,10 @@ def write_table3(table3: pd.DataFrame) -> Path:
         "ratio_separate_a1": "Separate FEV1/FVC model",
         "pef_conditional_fev1_ratio_a1": "PEF + FEV1 + FEV1/FVC z scores",
         "pef_conditional_fvc_ratio_a1": "PEF + FVC + FEV1/FVC z scores",
+        "pef_separate_a2": "A2 separate PEF model",
+        "pef_conditional_fev1_ratio_a2": "A2 PEF + FEV1 + FEV1/FVC z scores",
+        "pef_conditional_vs_separate_a2": "A2 conditional versus A2 separate",
+        "pef_conditional_a2_vs_a1": "A2 versus A1 conditional model",
         "pef_reference_range_a1": "PEF: all three GLI indices in range",
         "pef_conditional_vs_separate_contrast": "Conditional versus separate PEF model",
     }
@@ -1532,7 +1573,7 @@ def write_table3(table3: pd.DataFrame) -> Path:
         lines.append(r"\addlinespace")
     lines.extend(
         [
-            r"\multicolumn{8}{p{0.98\textwidth}}{\footnotesize GLI, Global Lung Function Initiative; HR, hazard ratio; CI, confidence interval; PEF, peak expiratory flow. All models used NHANES survey weights and the A1 covariates. PEF effects are per one original sex-specific SD lower PEF; GLI effects are per one-unit lower GLI z score. Their point estimates therefore should not be interpreted as a ranking of measurements. The reference-range row required FEV1, FVC, and FEV1/FVC to be at or above the GLI Global 2022 lower limit in each completed dataset; n and deaths are ranges across imputations. The paired contrast is the conditional-model PEF HR divided by the separate-model PEF HR, not a new exposure HR. Holm P values apply only to the two focal PEF tests; all other P values are descriptive and unadjusted for multiplicity.} \\",
+            r"\multicolumn{8}{p{0.98\textwidth}}{\footnotesize GLI, Global Lung Function Initiative; HR, hazard ratio; CI, confidence interval; PEF, peak expiratory flow. Models used NHANES survey weights and the A1 covariates unless marked A2. PEF effects are per one original sex-specific SD lower PEF; GLI effects are per one-unit lower GLI z score. Their point estimates therefore should not be interpreted as a ranking of measurements. The reference-range row required FEV1, FVC, and FEV1/FVC to be at or above the GLI Global 2022 lower limit in each completed dataset; n and deaths are ranges across imputations. Paired contrasts are ratios of PEF HRs, not new exposure HRs. Holm P values apply only to the two focal A1 PEF tests; all other P values are descriptive and unadjusted for multiplicity.} \\",
             r"\end{longtable}",
         ]
     )
@@ -1607,6 +1648,8 @@ def validate_outputs(outputs: list[Path]) -> None:
         ),
         "table3_nhanes_gli.tex": (
             "1.290 (1.066-1.560)",
+            "1.252 (1.034-1.517)",
+            "0.971 (0.948-0.995)",
             "0.883 (0.765-1.021)",
             "Ratio of HRs",
         ),
