@@ -1,7 +1,0 @@
-cohort,model_tier,label,n,deaths,hr,ci_low,ci_high,primary,analysis_id,scale
-CHARLS,A0,A0: demographic/body-size,12555,1735,1.46126438689593,1.34315023481676,1.58976527946007,False,charls_pef_sd_a0,"1 original cohort-specific, sex-specific SD lower PEF"
-CHARLS,A1,A1: primary model,12555,1735,1.4254815272918,1.31273794560704,1.54790801275308,True,charls_pef_sd_a1,"1 original cohort-specific, sex-specific SD lower PEF"
-CHARLS,A2,A2: extended health/function,12555,1735,1.27233524482457,1.17550760418064,1.37713866713025,False,charls_pef_sd_a2,"1 original cohort-specific, sex-specific SD lower PEF"
-NHANES,A0,A0: demographic/body-size,6719,925,1.7074245689663636,1.5516594656871785,1.8788263296024712,False,nhanes_pef_sd_a0,"1 original cohort-specific, sex-specific SD lower PEF"
-NHANES,A1,A1: primary model,6719,925,1.452707152858889,1.312020568159078,1.608479411971769,True,nhanes_pef_sd_a1,"1 original cohort-specific, sex-specific SD lower PEF"
-NHANES,A2,A2: extended health/function,6719,925,1.3786272865774958,1.2374480807220385,1.535913485911296,False,nhanes_pef_sd_a2,"1 original cohort-specific, sex-specific SD lower PEF"
