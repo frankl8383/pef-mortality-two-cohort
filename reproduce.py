@@ -1033,13 +1033,13 @@ def build_figure3(source: pd.DataFrame) -> list[Path]:
             "A",
             "Separate A1 models in the GLI common sample",
             [PEF, GLI, GLI, GLI],
-            "Different PEF and GLI standardization systems",
+            "Hazard ratio (95% CI)\nDifferent PEF and GLI standardization systems",
         ),
         (
             "B",
             "PEF before and after spirometric adjustment",
             [PEF, PEF, PEF, PRIMARY],
-            "Per one original sex-specific PEF SD",
+            "Hazard ratio (95% CI)\nPer one original sex-specific PEF SD",
         ),
     )
     for index, (panel, title, colors, xlabel) in enumerate(panels):
@@ -1065,7 +1065,7 @@ def build_figure3(source: pd.DataFrame) -> list[Path]:
         )
         axes[index].text(
             0.0,
-            -0.24,
+            -0.32,
             (
                 "n=6,540; deaths=885"
                 if panel == "A"
@@ -1078,9 +1078,9 @@ def build_figure3(source: pd.DataFrame) -> list[Path]:
     fig.subplots_adjust(
         left=0.42,
         right=0.72,
-        bottom=0.10,
+        bottom=0.13,
         top=0.94,
-        hspace=0.60,
+        hspace=0.72,
     )
     return save_figure(fig, "figure3_gli_comparison")
 
