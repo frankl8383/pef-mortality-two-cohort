@@ -1,8 +1,8 @@
 # PEF and mortality in CHARLS and NHANES
 
 This repository contains one final analytic-code archive for the accompanying
-manuscript. It includes the V46.0 CHARLS adjacent-window primary analysis and
-the NHANES strict A/B spirometry-quality sensitivity.
+manuscript. It includes the V46.0 primary analyses and the V46.1
+estimand-aligned CHARLS sensitivity analyses.
 
 ```bash
 shasum -a 256 -c analysis_code_final.sha256
